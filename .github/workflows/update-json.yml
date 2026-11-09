@@ -1,4 +1,4 @@
-name: Update Player JSON
+name: Update Player CSV
 
 on:
   schedule:
@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Fetch complete database from Supabase
+      - name: Fetch complete database from Supabase and save to CSV
         env:
           SUPABASE_URL: "https://fjkzchmcjmslwrwfakcx.supabase.co"
           SUPABASE_KEY: "sb_publishable_4MnHiwh04iMIwD_qDgMPMA_QMij3f8-"
@@ -27,9 +27,9 @@ jobs:
           python -c '
           import urllib.request
           import json
+          import csv
           import os
 
-          # Requests all columns by selecting them explicitly in the requested order
           url = os.environ["SUPABASE_URL"] + "/rest/v1/PlayerList?select=Username,GUID,IP_Address,Local_IP,Console,Mic,Status,Last_Met"
           key = os.environ["SUPABASE_KEY"]
           
@@ -58,12 +58,18 @@ jobs:
                   break
 
           print(f"Total rows fetched: {len(all_rows)}")
-          with open("players.json", "w") as f:
-              json.dump(all_rows, f, indent=2)
+          
+          fields = ["Username", "GUID", "IP_Address", "Local_IP", "Console", "Mic", "Status", "Last_Met"]
+
+          with open("players.csv", "w", newline="", encoding="utf-8") as f:
+              writer = csv.DictWriter(f, fieldnames=fields)
+              writer.writeheader()
+              for row in all_rows:
+                  writer.writerow(row)
           '
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Auto-update full database players.json via GitHub Action"
-          file_pattern: players.json
+          commit_message: "Auto-update full database players.csv via GitHub Action"
+          file_pattern: players.csv
