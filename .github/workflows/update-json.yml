@@ -1,0 +1,28 @@
+name: Update Player JSON
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour automatically
+  workflow_dispatch: # Allows you to run it manually whenever you want from the Actions tab
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Grants permission to save the file back to the repo
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Fetch data from Supabase and save to JSON
+        run: |
+          curl -X GET "https://fjkzchmcjmslwrwfakcx.supabase.co/rest/v1/PlayerList?select=Username,Status,GUID,Last_Met&limit=10000" \
+          -H "apikey: sb_publishable_4MnHiwh04iMIwD_qDgMPMA_QMij3f8-" \
+          -H "Authorization: Bearer sb_publishable_4MnHiwh04iMIwD_qDgMPMA_QMij3f8-" \
+          -o players.json
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Auto-update players.json via GitHub Action"
+          file_pattern: players.json
