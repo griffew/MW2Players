@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Public Player List</title>
+    <!-- Crypto-JS for GUID hashing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #1e1e1e; color: #fff; padding: 20px; }
+        
+        /* Search Bar Styles */
+        .search-container { background-color: #2d2d2d; padding: 15px; border-radius: 5px; margin-top: 10px; display: flex; gap: 10px; align-items: center; }
+        .search-container input[type="text"] { flex: 1; padding: 8px; background-color: #444; color: #fff; border: 1px solid #666; border-radius: 3px; }
+        .search-container select { padding: 8px; background-color: #444; color: #fff; border: 1px solid #666; border-radius: 3px; }
+        .search-container button { padding: 8px 15px; background-color: #555; color: #fff; border: 1px solid #777; cursor: pointer; border-radius: 3px; font-weight: bold; }
+        .search-container button:hover { background-color: #666; }
+        .search-container .clear-btn { background-color: #cc0000; border-color: #ff4444; }
+        .search-container .clear-btn:hover { background-color: #ff4444; }
+
+        /* Control Bar Styles */
+        .controls { display: flex; justify-content: space-between; align-items: center; background-color: #2d2d2d; padding: 15px; margin-top: 15px; border-radius: 5px; }
+        .sort-box select { padding: 5px; background-color: #444; color: #fff; border: 1px solid #666; border-radius: 3px; }
+        .pagination button { padding: 6px 12px; background-color: #444; color: #fff; border: 1px solid #666; cursor: pointer; border-radius: 3px; }
+        .pagination button:disabled { background-color: #222; color: #555; cursor: not-allowed; }
+        .pagination span { margin: 0 10px; font-weight: bold; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: #2d2d2d; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #444; }
+        th { background-color: #3d3d3d; }
+        
+        /* Flag Colors */
+        .flag-SUS { color: #ff4444; font-weight: bold; }
+        .flag-Modder { color: #ffbb33; font-weight: bold; }
+        .flag-KOS { color: #cc0000; font-weight: bold; }
+        .flag-Banned { color: #ff66b2; font-weight: bold; }
+        .flag-Legit { color: #00C851; font-weight: bold; }
+        .flag-Friend { color: #33b5e5; font-weight: bold; }
+        .flag-Not-Set { color: #aaaaaa; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <h2>Public Player Database (All Players)</h2>
+    
+    <!-- Search Bar Area -->
+    <div class="search-container">
+        <select id="searchType">
+            <option value="name">Search by Name</option>
+            <option value="guid">Search by Raw GUID</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Enter name or unhashed GUID..." onkeypress="handleEnter(event)">
+        <button onclick="executeSearch()">Search</button>
+        <button class="clear-btn" onclick="clearSearch()">Reset</button>
+    </div>
+
+    <!-- Controls / Pagination -->
+    <div class="controls">
+        <div class="sort-box">
+            <label for="sortSelect">Sort By: </label>
+            <select id="sortSelect" onchange="sortData()">
+                <option value="username_asc">Username (A - Z)</option>
+                <option value="username_desc">Username (Z - A)</option>
+                <option value="flag_asc">Flag Type (A - Z)</option>
+                <option value="flag_desc">Flag Type (Z - A)</option>
+                <option value="guid_asc">GUID (A - Z)</option>
+                <option value="guid_desc">GUID (Z - A)</option>
+                <option value="lastmet_desc">Last Met (Newest First)</option>
+                <option value="lastmet_asc">Last Met (Oldest First)</option>
+            </select>
+        </div>
+        
+        <div class="pagination">
+            <button id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
+            <span id="pageIndicator">Loading...</span>
+            <button id="nextBtn" onclick="changePage(1)" disabled>Next</button>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Status (Flag)</th>
+                <th>GUID</th>
+                <th>Last Met</th>
+            </tr>
+        </thead>
+        <tbody id="playerTableBody">
+            <tr><td colspan="4">Downloading database... this may take a moment.</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        const PROJECT_URL = "https://fjkzchmcjmslwrwfakcx.supabase.co";
+        const PUBLIC_ANON_KEY = "sb_publishable_4MnHiwh04iMIwD_qDgMPMA_QMij3f8-";
+        
+        let allPlayers = []; 
+        let currentDisplayList = []; 
+        
+        let currentPage = 1;
+        const itemsPerPage = 1000;
+
+        async function loadPlayers() {
+            try {
+                let fetchMore = true;
+                let offset = 0;
+                const fetchLimit = 1000;
+                let rawPlayers = [];
+                
+                const tableBody = document.getElementById('playerTableBody');
+
+                // Loop to bypass the 1,000 row API limit and download the entire database
+                while (fetchMore) {
+                    tableBody.innerHTML = `<tr><td colspan='4'>Downloading database... (Fetched ${offset} rows so far)</td></tr>`;
+                    
+                    const response = await fetch(`${PROJECT_URL}/rest/v1/PlayerList?select=Username,Status,GUID,Last_Met&limit=${fetchLimit}&offset=${offset}`, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': PUBLIC_ANON_KEY,
+                            'Authorization': `Bearer ${PUBLIC_ANON_KEY}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+                    rawPlayers = rawPlayers.concat(data);
+
+                    if (data.length < fetchLimit) {
+                        fetchMore = false; // We reached the end of the list
+                    } else {
+                        offset += fetchLimit;
+                    }
+                }
+
+                // Process the complete dataset
+                rawPlayers.forEach(player => {
+                    let rawStatus = player.Status || "Not Set";
+                    let cleanFlag = rawStatus.includes('(') ? rawStatus.split('(')[0].trim() : rawStatus.trim();
+
+                    allPlayers.push({
+                        Username: player.Username || "Unknown",
+                        Flag: cleanFlag,
+                        GUID: player.GUID || "Unknown",
+                        LastMet: player.Last_Met || "N/A"
+                    });
+                });
+
+                currentDisplayList = [...allPlayers];
+                sortData();
+
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById('playerTableBody').innerHTML = "<tr><td colspan='4'>Error loading database.</td></tr>";
+            }
+        }
+
+        // Search logic
+        function executeSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            const searchType = document.getElementById('searchType').value;
+
+            if (query === "") {
+                clearSearch();
+                return;
+            }
+
+            if (searchType === "name") {
+                const lowerQuery = query.toLowerCase();
+                currentDisplayList = allPlayers.filter(p => p.Username.toLowerCase().includes(lowerQuery));
+            } 
+            else if (searchType === "guid") {
+                const hashedTarget = CryptoJS.MD5(query).toString().toUpperCase();
+                console.log(`Hashed ${query} into ${hashedTarget}`);
+                currentDisplayList = allPlayers.filter(p => p.GUID === hashedTarget);
+            }
+
+            sortData();
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                executeSearch();
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = "";
+            currentDisplayList = [...allPlayers];
+            sortData();
+        }
+
+        // Sorting logic
+        function sortData() {
+            const sortMode = document.getElementById('sortSelect').value;
+
+            currentDisplayList.sort((a, b) => {
+                if (sortMode === 'username_asc') return a.Username.localeCompare(b.Username);
+                if (sortMode === 'username_desc') return b.Username.localeCompare(a.Username);
+                if (sortMode === 'flag_asc') return a.Flag.localeCompare(b.Flag);
+                if (sortMode === 'flag_desc') return b.Flag.localeCompare(a.Flag);
+                if (sortMode === 'guid_asc') return a.GUID.localeCompare(b.GUID);
+                if (sortMode === 'guid_desc') return b.GUID.localeCompare(a.GUID);
+                if (sortMode === 'lastmet_desc') return b.LastMet.localeCompare(a.LastMet);
+                if (sortMode === 'lastmet_asc') return a.LastMet.localeCompare(b.LastMet);
+                return 0;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Rendering and Pagination
+        function renderTable() {
+            const tableBody = document.getElementById('playerTableBody');
+            tableBody.innerHTML = ""; 
+
+            const totalPages = Math.ceil(currentDisplayList.length / itemsPerPage);
+            document.getElementById('pageIndicator').innerText = `Page ${currentPage} of ${totalPages || 1} (${currentDisplayList.length} total players)`;
+
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = currentDisplayList.slice(startIndex, endIndex);
+
+            if (pageData.length === 0) {
+                tableBody.innerHTML = "<tr><td colspan='4'>No players found matching your search.</td></tr>";
+                return;
+            }
+
+            pageData.forEach(player => {
+                const cssClass = "flag-" + player.Flag.replace(/\s+/g, '-');
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${player.Username}</td>
+                    <td class="${cssClass}">${player.Flag}</td>
+                    <td>${player.GUID}</td>
+                    <td>${player.LastMet}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderTable();
+            window.scrollTo(0, 0);
+        }
+
+        loadPlayers();
+    </script>
+
+</body>
+</html>
