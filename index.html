@@ -256,6 +256,18 @@
         let currentPage = 1;
         const itemsPerPage = 1000;
 
+        // Formats raw GUID with dashes and hashes it to match the C# App
+        function processGuid(rawInput) {
+            // 1. Clean it: remove any existing dashes/spaces and make it uppercase
+            let clean = rawInput.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+            
+            // 2. Format it: insert a dash every 2 characters (e.g., 3E-02-11...)
+            let formatted = clean.match(/.{1,2}/g).join('-');
+            
+            // 3. Hash it: MD5 hash the formatted string and uppercase the result
+            return CryptoJS.MD5(formatted).toString().toUpperCase();
+        }
+
         // Toast Notification System
         function showToast(message, type = 'info') {
             const toast = document.getElementById("toast");
@@ -407,7 +419,7 @@
                 const lowerQuery = query.toLowerCase();
                 currentDisplayList = allPlayers.filter(p => p.Username.toLowerCase().includes(lowerQuery));
             } else if (searchType === "guid") {
-                const hashedTarget = CryptoJS.MD5(query).toString().toUpperCase();
+                const hashedTarget = processGuid(query);
                 currentDisplayList = allPlayers.filter(p => p.GUID === hashedTarget);
             }
             sortData();
@@ -494,15 +506,17 @@
         }
 
         async function savePlayer() {
-            const guid = document.getElementById('manageGuid').value.trim();
+            const rawGuid = document.getElementById('manageGuid').value.trim();
             const username = document.getElementById('manageUsername').value.trim();
             const ip = document.getElementById('manageIp').value.trim() || "Unknown";
             const flag = document.getElementById('manageReason').value;
 
-            if (!guid || !username) {
+            if (!rawGuid || !username) {
                 showToast("GUID and GamerTag are required.", "error");
                 return;
             }
+
+            const finalGuid = processGuid(rawGuid);
 
             const now = new Date();
             const timeString = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -517,7 +531,7 @@
                         'Prefer': 'resolution=merge-duplicates, return=minimal'
                     },
                     body: JSON.stringify({
-                        GUID: guid,
+                        GUID: finalGuid,
                         Username: username,
                         Status: flag,
                         IP_Address: ip,
@@ -544,17 +558,19 @@
         }
 
         async function deletePlayer() {
-            const guid = document.getElementById('manageGuid').value.trim();
+            const rawGuid = document.getElementById('manageGuid').value.trim();
 
-            if (!guid) {
+            if (!rawGuid) {
                 showToast("Enter a GUID to delete.", "error");
                 return;
             }
 
-            if (!confirm(`Are you sure you want to permanently delete the record for GUID: ${guid}?`)) return;
+            const finalGuid = processGuid(rawGuid);
+
+            if (!confirm(`Are you sure you want to permanently delete the record for this GUID?\n\nTarget Hash: ${finalGuid}`)) return;
 
             try {
-                const response = await fetch(`${PROJECT_URL}/rest/v1/PlayerList?GUID=eq.${guid}`, {
+                const response = await fetch(`${PROJECT_URL}/rest/v1/PlayerList?GUID=eq.${finalGuid}`, {
                     method: 'DELETE',
                     headers: {
                         'apikey': PUBLIC_ANON_KEY,
