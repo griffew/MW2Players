@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XUID Flagger - Player Database</title>
+    <title>Player Database</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Crypto-JS for GUID hashing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root {
-            --bg-base: #0f172a;
-            --bg-panel: #1e293b;
-            --bg-hover: #334155;
+            --bg-base: #09090b;
+            --bg-panel: #18181b;
+            --bg-hover: #27272a;
             --accent: #ef4444;
+            --accent-glow: rgba(239, 68, 68, 0.4);
             --accent-hover: #dc2626;
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --radius: 8px;
-            --transition: all 0.2s ease-in-out;
+            --text-muted: #a1a1aa;
+            --border: #3f3f46;
+            --radius: 10px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,71 +38,106 @@
         /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-base); }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #71717a; }
 
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1300px; margin: 0 auto; }
 
         .header { margin-bottom: 30px; text-align: center; }
-        .header h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
-        .header p { color: var(--text-muted); font-size: 14px; margin-top: 5px; }
+        .header h1 { font-size: 32px; font-weight: 700; color: #fff; letter-spacing: -0.5px; text-shadow: 0 0 15px rgba(255,255,255,0.1); }
+        .header p { color: var(--text-muted); font-size: 15px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
 
         /* Navigation Tabs */
-        .tab-container { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid var(--border); }
-        .tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 12px 24px; font-size: 15px; cursor: pointer; font-weight: 600; transition: var(--transition); position: relative; }
-        .tab-btn:hover { color: var(--text-main); }
-        .tab-btn.active { color: var(--accent); }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background-color: var(--accent); border-radius: 2px 2px 0 0; }
+        .tab-container { display: flex; gap: 5px; margin-bottom: 25px; border-bottom: 1px solid var(--border); overflow-x: auto; padding-bottom: 2px; }
+        .tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 14px 24px; font-size: 14px; cursor: pointer; font-weight: 600; transition: var(--transition); position: relative; border-radius: var(--radius) var(--radius) 0 0; display: flex; align-items: center; gap: 8px; }
+        .tab-btn:hover { color: var(--text-main); background-color: rgba(255,255,255,0.03); }
+        .tab-btn.active { color: var(--accent); background-color: rgba(239, 68, 68, 0.05); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background-color: var(--accent); border-radius: 2px 2px 0 0; box-shadow: 0 -2px 10px var(--accent-glow); }
 
         /* View Sections */
         .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Stats Dashboard */
+        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: var(--transition); }
+        .stat-card:hover { transform: translateY(-2px); border-color: #52525b; }
+        .stat-value { font-size: 28px; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace; margin-bottom: 5px; }
+        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
         /* Forms & Controls */
-        .toolbar { display: flex; flex-wrap: wrap; gap: 15px; background-color: var(--bg-panel); padding: 20px; border-radius: var(--radius); margin-bottom: 20px; align-items: center; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .form-group { display: flex; flex-direction: column; width: 100%; gap: 6px; margin-bottom: 15px; }
-        .form-group label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
-        input, select { padding: 10px 14px; background-color: var(--bg-base); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s; }
-        input:focus, select:focus { border-color: var(--accent); }
-        button { padding: 10px 18px; background-color: var(--bg-hover); color: var(--text-main); border: none; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 14px; transition: var(--transition); }
-        button:hover:not(:disabled) { background-color: #475569; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 15px; background-color: var(--bg-panel); padding: 20px; border-radius: var(--radius); margin-bottom: 20px; align-items: center; border: 1px solid var(--border); box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2); justify-content: space-between; }
+        .toolbar-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        
+        .form-group { display: flex; flex-direction: column; width: 100%; gap: 8px; margin-bottom: 15px; }
+        .form-group label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .input-with-icon { position: relative; display: flex; align-items: center; width: 100%; }
+        .input-with-icon i { position: absolute; left: 14px; color: var(--text-muted); font-size: 14px; transition: color 0.2s; z-index: 2; }
+        .input-with-icon input:focus + i, .input-with-icon select:focus + i { color: var(--accent); }
+        .input-with-icon input, .input-with-icon select { padding-left: 40px; position: relative; z-index: 1; }
+
+        input, select { padding: 12px 16px; background-color: rgba(0,0,0,0.2); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: var(--transition); width: 100%; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); }
+        
+        button { padding: 12px 20px; background-color: var(--bg-hover); color: var(--text-main); border: 1px solid var(--border); cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 14px; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button:hover:not(:disabled) { background-color: #3f3f46; transform: translateY(-1px); }
+        button:active:not(:disabled) { transform: translateY(0); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background-color: var(--accent); }
-        .btn-primary:hover:not(:disabled) { background-color: var(--accent-hover); }
+        
+        .btn-primary { background-color: var(--accent); color: white; border: none; }
+        .btn-primary:hover:not(:disabled) { background-color: var(--accent-hover); box-shadow: 0 4px 12px var(--accent-glow); }
+        
+        .btn-success { background-color: #10b981; color: white; border: none; }
+        .btn-success:hover:not(:disabled) { background-color: #059669; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+
+        .btn-danger { background-color: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; }
+        .btn-danger:hover:not(:disabled) { background-color: #ef4444; color: #fff; box-shadow: 0 4px 12px var(--accent-glow); }
+
+        /* Search Bar Setup */
+        .search-container { display: flex; flex: 1; min-width: 250px; position: relative; }
+        .search-container i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .search-container input { padding-left: 40px; }
 
         /* Table Styles */
-        .table-container { background-color: var(--bg-panel); border-radius: var(--radius); border: 1px solid var(--border); overflow-y: auto; max-height: 600px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .table-container { background-color: var(--bg-panel); border-radius: var(--radius); border: 1px solid var(--border); overflow-y: auto; max-height: 650px; box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2); }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { background-color: var(--bg-panel); padding: 14px 16px; font-size: 13px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid var(--border); }
-        td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; color: #cbd5e1; }
+        th { background-color: rgba(0,0,0,0.3); padding: 16px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+        td { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #d4d4d8; }
         tr:hover td { background-color: rgba(255,255,255,0.02); color: #fff; }
         tr:last-child td { border-bottom: none; }
-        .ip-header { background-color: #0f172a !important; color: #fbbf24 !important; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+        .guid-font { font-family: 'JetBrains Mono', monospace; color: #a1a1aa; font-size: 13px; }
+        
+        .ip-header { background-color: #09090b !important; color: #fbbf24 !important; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; border-top: 2px solid var(--border); }
 
         /* Pill Badges for Flags */
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .bg-SUS { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .bg-Modder { background-color: rgba(234, 88, 12, 0.15); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.3); }
-        .bg-KOS { background-color: rgba(220, 38, 38, 0.15); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.3); }
-        .bg-Banned { background-color: rgba(219, 39, 119, 0.15); color: #db2777; border: 1px solid rgba(219, 39, 119, 0.3); }
-        .bg-Legit { background-color: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .bg-Friend { background-color: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
-        .bg-Not-Set { background-color: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bg-SUS { background-color: rgba(245, 158, 11, 0.15); color: #fbd38d; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .bg-Modder { background-color: rgba(234, 88, 12, 0.15); color: #fdba74; border: 1px solid rgba(234, 88, 12, 0.4); }
+        .bg-KOS { background-color: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.4); }
+        .bg-Banned { background-color: rgba(219, 39, 119, 0.15); color: #f9a8d4; border: 1px solid rgba(219, 39, 119, 0.4); }
+        .bg-Legit { background-color: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .bg-Friend { background-color: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .bg-Not-Set { background-color: rgba(161, 161, 170, 0.15); color: #d4d4d8; border: 1px solid rgba(161, 161, 170, 0.4); }
 
-        /* Management Panel */
-        .auth-card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; max-width: 450px; margin: 40px auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .auth-card h3 { margin-bottom: 20px; font-size: 20px; text-align: center; }
+        /* Admin Management Grid */
+        .admin-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .admin-panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .admin-panel h3 { margin-bottom: 25px; font-size: 18px; display: flex; align-items: center; gap: 10px; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .auth-card { max-width: 450px; margin: 60px auto; text-align: center; }
 
         /* Toast Notifications */
-        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 12px 20px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; font-weight: 600; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
-        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
-        #toast.success { background-color: #10b981; }
-        #toast.error { background-color: #ef4444; }
-        #toast.info { background-color: #3b82f6; }
+        #toast { visibility: hidden; min-width: 250px; background-color: #27272a; color: #fff; text-align: center; border-radius: 8px; padding: 16px 24px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(20px); font-size: 14px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.5); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border); }
+        #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+        #toast.success { border-left: 4px solid #10b981; }
+        #toast.error { border-left: 4px solid #ef4444; }
+        #toast.info { border-left: 4px solid #3b82f6; }
 
         /* Loading Spinner */
-        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s ease-in-out infinite; margin-right: 10px; vertical-align: middle; }
+        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%; border-top-color: var(--accent); animation: spin 0.8s linear infinite; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -107,43 +145,89 @@
 
     <div class="container">
         <div class="header">
-            <h1>XUID Flagger Network</h1>
-            <p>Public Player Intelligence & Tracking Database</p>
+            <h1>Player Database</h1>
+            <p><i class="fa-solid fa-server" style="margin-right: 5px;"></i> Public Player Tracking Database</p>
         </div>
 
         <!-- Navigation Tabs -->
         <div class="tab-container">
-            <button class="tab-btn active" onclick="switchTab('dbView', this)">Database</button>
-            <button class="tab-btn" onclick="switchTab('ipView', this)">Alt Accounts</button>
-            <button class="tab-btn" onclick="switchTab('reportView', this)">Player Management</button>
+            <button class="tab-btn active" onclick="switchTab('dbView', this)"><i class="fa-solid fa-database"></i> Database Index</button>
+            <button class="tab-btn" onclick="switchTab('ipView', this)"><i class="fa-solid fa-network-wired"></i> Network Matches (Alt Accounts)</button>
+            <button class="tab-btn" onclick="switchTab('reportView', this)"><i class="fa-solid fa-shield-halved"></i> Management</button>
         </div>
 
         <!-- TAB 1: DATABASE -->
         <div id="dbView" class="view-section active">
-            <div class="toolbar">
-                <select id="searchType" style="width: 150px;">
-                    <option value="name">Name</option>
-                    <option value="guid">Raw GUID</option>
-                </select>
-                <input type="text" id="searchInput" placeholder="Search..." onkeypress="handleEnter(event)" style="flex: 1; min-width: 200px;">
-                <button class="btn-primary" onclick="executeSearch()">Search</button>
-                <button onclick="clearSearch()">Clear</button>
+            
+            <!-- Statistics Row -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total Tracked</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statBanned" style="color: #f9a8d4;">0</div>
+                    <div class="stat-label">Banned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statModders" style="color: #fdba74;">0</div>
+                    <div class="stat-label">Modders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statSus" style="color: #fbd38d;">0</div>
+                    <div class="stat-label">Suspicious</div>
+                </div>
             </div>
 
-            <div class="toolbar" style="justify-content: space-between; padding: 15px 20px;">
-                <div>
-                    <label for="sortSelect" style="font-size: 13px; color: var(--text-muted); margin-right: 10px;">Sort:</label>
-                    <select id="sortSelect" onchange="sortData()" style="width: auto;">
-                        <option value="lastmet_desc">Last Met (Newest)</option>
-                        <option value="lastmet_asc">Last Met (Oldest)</option>
+            <!-- Search Bar -->
+            <div class="toolbar">
+                <div class="toolbar-group" style="flex: 1;">
+                    <select id="searchType" style="width: 180px;">
+                        <option value="name">Username</option>
+                        <option value="guid_hash">Hashed GUID</option>
+                        <option value="guid_raw">Raw GUID Format</option>
+                        <option value="status">Status Flag</option>
+                        <option value="ip_hash">Hashed IP Address</option>
+                        <option value="ip_raw">Raw IP Address</option>
+                    </select>
+                    <div class="search-container">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Type to filter anywhere within the selected column..." oninput="debounceSearch()">
+                    </div>
+                </div>
+                <div class="toolbar-group">
+                    <button onclick="clearSearch()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                    <button class="btn-success" onclick="exportCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                </div>
+            </div>
+
+            <!-- Sorting & Pagination -->
+            <div class="toolbar" style="padding: 15px 20px;">
+                <div class="toolbar-group">
+                    <label for="sortSelect" style="font-size: 13px; color: var(--text-muted);"><i class="fa-solid fa-sort"></i> Sort Index:</label>
+                    <select id="sortSelect" onchange="sortData()" style="width: 220px; padding: 10px;">
+                        <option value="lastmet_desc">Last Met (Newest First)</option>
+                        <option value="lastmet_asc">Last Met (Oldest First)</option>
                         <option value="username_asc">Username (A - Z)</option>
-                        <option value="flag_asc">Flag Type</option>
+                        <option value="username_desc">Username (Z - A)</option>
+                        <option value="flag_asc">Status Type (A - Z)</option>
+                        <option value="flag_desc">Status Type (Z - A)</option>
+                        <option value="guid_asc">Hashed GUID (A - Z)</option>
                     </select>
                 </div>
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <button id="prevBtn" onclick="changePage(-1)" disabled>&larr; Prev</button>
-                    <span id="pageIndicator" style="font-size: 13px; font-weight: 600;">Loading...</span>
-                    <button id="nextBtn" onclick="changePage(1)" disabled>Next &rarr;</button>
+                
+                <div class="toolbar-group">
+                    <label style="font-size: 13px; color: var(--text-muted);">Rows:</label>
+                    <select id="pageSize" onchange="changePageSize()" style="width: 80px; padding: 10px;">
+                        <option value="50">50</option>
+                        <option value="100" selected>100</option>
+                        <option value="500">500</option>
+                        <option value="1000">1000</option>
+                    </select>
+                    <div style="width: 1px; height: 20px; background-color: var(--border); margin: 0 10px;"></div>
+                    <button id="prevBtn" onclick="changePage(-1)" disabled><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                    <span id="pageIndicator" style="font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono'; margin: 0 10px;">Loading...</span>
+                    <button id="nextBtn" onclick="changePage(1)" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
 
@@ -151,14 +235,14 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 25%;">Username</th>
-                            <th style="width: 15%;">Status</th>
+                            <th style="width: 25%;">GamerTag</th>
+                            <th style="width: 15%;">Classification</th>
                             <th style="width: 35%;">GUID (Hashed)</th>
-                            <th style="width: 25%;">Last Met</th>
+                            <th style="width: 25%;">Last Encounter</th>
                         </tr>
                     </thead>
                     <tbody id="playerTableBody">
-                        <tr><td colspan="4" style="text-align: center; padding: 40px;"><div class="loader"></div> Downloading database...</td></tr>
+                        <tr><td colspan="4" style="text-align: center; padding: 80px;"><div class="loader" style="margin-right: 10px;"></div> Establishing database connection...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -167,20 +251,39 @@
         <!-- TAB 2: SHARED IPs -->
         <div id="ipView" class="view-section">
             <div class="toolbar">
-                <p style="font-size: 14px; color: var(--text-muted);">This page automatically groups player profiles that have connected using the exact same IP address.</p>
+                <p style="font-size: 14px; color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> Network Intelligence isolates identical hardware matches (exact external & local IP) separately from household matches (shared external IP).</p>
             </div>
-            <div class="table-container">
+            
+            <h3 style="color: #fff; margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fa-solid fa-microchip"></i> Hardware Matches (Identical External & Local IP Hashes)</h3>
+            <div class="table-container" style="margin-bottom: 40px; max-height: 350px;">
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 25%;">Username</th>
-                            <th style="width: 15%;">Status</th>
+                            <th style="width: 25%;">GamerTag</th>
+                            <th style="width: 15%;">Classification</th>
                             <th style="width: 35%;">GUID (Hashed)</th>
-                            <th style="width: 25%;">Last Met</th>
+                            <th style="width: 25%;">Last Encounter</th>
                         </tr>
                     </thead>
-                    <tbody id="ipTableBody">
-                        <tr><td colspan="4" style="text-align: center; padding: 40px;">Loading data...</td></tr>
+                    <tbody id="hardwareTableBody">
+                        <tr><td colspan="4" style="text-align: center; padding: 40px;">Analyzing hardware data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="color: #fff; margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fa-solid fa-house-signal"></i> Household Matches (Identical External IP Hashes)</h3>
+            <div class="table-container" style="max-height: 350px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">GamerTag</th>
+                            <th style="width: 15%;">Classification</th>
+                            <th style="width: 35%;">GUID (Hashed)</th>
+                            <th style="width: 25%;">Last Encounter</th>
+                        </tr>
+                    </thead>
+                    <tbody id="householdTableBody">
+                        <tr><td colspan="4" style="text-align: center; padding: 40px;">Analyzing household data...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -188,107 +291,240 @@
 
         <!-- TAB 3: PLAYER MANAGEMENT -->
         <div id="reportView" class="view-section">
-            
-            <!-- Login Card -->
-            <div id="loginContainer" class="auth-card">
-                <h3>Admin Login</h3>
+            <!-- Login -->
+            <div id="loginContainer" class="admin-panel auth-card">
+                <h3 style="justify-content: center; border: none; font-size: 22px;"><i class="fa-solid fa-user-lock"></i> System Authentication</h3>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Enter your admin credentials to access database modification tools.</p>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="text" id="loginEmail" placeholder="admin@example.com">
+                    <div class="input-with-icon">
+                        <input type="text" id="loginEmail" placeholder="Administrator Email">
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" placeholder="••••••••">
+                    <div class="input-with-icon">
+                        <input type="password" id="loginPassword" placeholder="••••••••">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
                 </div>
-                <button class="btn-primary" onclick="handleLogin()" style="width: 100%; margin-top: 10px;">Secure Login</button>
+                <button class="btn-primary" onclick="handleLogin()" style="width: 100%; margin-top: 10px; padding: 14px;"><i class="fa-solid fa-right-to-bracket"></i> Authenticate</button>
             </div>
 
-            <!-- Management Card -->
-            <div id="managementContainer" class="auth-card" style="display: none; max-width: 500px;">
-                <h3>Database Management</h3>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Add new players or update existing ones by entering their GUID.</p>
-                
-                <div class="form-group">
-                    <label>Target GUID (Required - acts as unique ID)</label>
-                    <input type="text" id="manageGuid" placeholder="3e02118c7a914ac4">
+            <!-- Management Dashboard -->
+            <div id="managementContainer" style="display: none;">
+                <div class="toolbar" style="margin-bottom: 20px;">
+                    <div style="font-weight: 600; font-size: 15px;"><i class="fa-solid fa-shield-check" style="color: #10b981;"></i> Secure Session Active</div>
+                    <button onclick="handleLogout()"><i class="fa-solid fa-power-off"></i> Terminate Session</button>
                 </div>
-                <div class="form-group">
-                    <label>GamerTag (Required)</label>
-                    <input type="text" id="manageUsername" placeholder="e.g. Aimbot_User99">
+
+                <div class="admin-dashboard">
+                    <!-- Left Column: Update Record -->
+                    <div class="admin-panel">
+                        <h3><i class="fa-solid fa-pen-to-square"></i> Update Existing Record</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">Search by GamerTag or enter the target's GUID (Raw or Hashed) and click <b>Fetch Profile</b> to load their current tracking data. Privacy-hashed network data will remain unmodified unless overridden.</p>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Find Profile by GamerTag</label>
+                                <div class="input-with-icon">
+                                    <input type="text" id="searchUsername" list="playerNamesList" placeholder="Search Database..." onchange="handleNameSelect()">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                                <datalist id="playerNamesList"></datalist>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Or Provide Target GUID (Raw or Hashed)</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <div class="input-with-icon" style="flex: 1;">
+                                        <input type="text" id="manageGuid" placeholder="e.g. 3e02118c... or MD5" oninput="previewHash('manageGuid', 'hashPreviewGuid')">
+                                        <i class="fa-solid fa-fingerprint"></i>
+                                    </div>
+                                    <button class="btn-primary" onclick="pullPlayerData()" style="border-radius: 6px;"><i class="fa-solid fa-cloud-arrow-down"></i> Fetch</button>
+                                </div>
+                                <div id="hashPreviewGuid" style="font-size: 12px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> Target Hash: <span></span></div>
+                            </div>
+                        </div>
+
+                        <!-- Update Fields (Hidden until Fetched) -->
+                        <div id="updateFields" style="display: none; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border);">
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>GamerTag (Required)</label>
+                                    <div class="input-with-icon">
+                                        <input type="text" id="manageUsername" placeholder="e.g. Modder_99">
+                                        <i class="fa-solid fa-user-tag"></i>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Classification Flag</label>
+                                    <div class="input-with-icon">
+                                        <select id="manageReason">
+                                            <option value="Banned">Banned (Aimbot/Extreme)</option>
+                                            <option value="KOS">KOS (Kill On Sight)</option>
+                                            <option value="Modder">Modder (UAV/ESP)</option>
+                                            <option value="SUS">SUS (Suspicious)</option>
+                                            <option value="Legit">Legit</option>
+                                            <option value="Friend">Friend</option>
+                                            <option value="Not Set">Not Set</option>
+                                        </select>
+                                        <i class="fa-solid fa-flag"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>External IP (Raw Input)</label>
+                                    <div class="input-with-icon">
+                                        <input type="text" id="manageIp" oninput="previewHash('manageIp', 'hashPreviewExIp')">
+                                        <i class="fa-solid fa-globe"></i>
+                                    </div>
+                                    <div id="hashPreviewExIp" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Local IP (Raw Input)</label>
+                                    <div class="input-with-icon">
+                                        <input type="text" id="manageLocalIp" oninput="previewHash('manageLocalIp', 'hashPreviewInIp')">
+                                        <i class="fa-solid fa-network-wired"></i>
+                                    </div>
+                                    <div id="hashPreviewInIp" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
+                                </div>
+                            </div>
+
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Console Region</label>
+                                    <div class="input-with-icon">
+                                        <input type="text" id="manageRegion" oninput="previewHash('manageRegion', 'hashPreviewRegion')">
+                                        <i class="fa-solid fa-earth-americas"></i>
+                                    </div>
+                                    <div id="hashPreviewRegion" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Microphone Found</label>
+                                    <div class="input-with-icon">
+                                        <select id="manageMic">
+                                            <option value="false">False</option>
+                                            <option value="true">True</option>
+                                        </select>
+                                        <i class="fa-solid fa-microphone"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="btn-success" onclick="savePlayer()" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> Format & Push Update</button>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Danger Zone -->
+                    <div class="admin-panel" style="border-color: rgba(239, 68, 68, 0.3);">
+                        <h3 style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Permamently wipe a player's tracking history from the Supabase infrastructure.</p>
+                        
+                        <div class="form-group">
+                            <label>Target GUID to Erase (Raw or Hashed)</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="deleteGuid" placeholder="Enter GUID for deletion">
+                                <i class="fa-solid fa-skull"></i>
+                            </div>
+                        </div>
+                        <button class="btn-danger" onclick="deletePlayer()" style="width: 100%; margin-top: 10px; padding: 14px;"><i class="fa-solid fa-fire"></i> Purge Record</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>IP Address (Optional - for Alt Account tracking)</label>
-                    <input type="text" id="manageIp" placeholder="e.g. 192.168.1.1">
-                </div>
-                <div class="form-group">
-                    <label>Classification Flag</label>
-                    <select id="manageReason">
-                        <option value="Banned">Banned (Aimbot/Extreme)</option>
-                        <option value="KOS">KOS (Kill On Sight)</option>
-                        <option value="Modder">Modder (UAV/ESP)</option>
-                        <option value="SUS">SUS (Suspicious)</option>
-                        <option value="Legit">Legit</option>
-                        <option value="Friend">Friend</option>
-                        <option value="Not Set">Not Set</option>
-                    </select>
-                </div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="btn-primary" onclick="savePlayer()" style="flex: 2; background-color: #10b981;">Save / Update Record</button>
-                    <button onclick="deletePlayer()" style="flex: 1; background-color: transparent; border: 1px solid #ef4444; color: #ef4444;">Delete</button>
-                </div>
-                <button onclick="handleLogout()" style="width: 100%; margin-top: 15px; background-color: transparent; border: 1px solid var(--border);">Logout</button>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification Element -->
-    <div id="toast">Notification</div>
+    <div id="toast"><i class="fa-solid fa-bell"></i> <span style="margin-left: 8px;">Notification</span></div>
 
     <script>
+        // Supabase Configuration
         const PROJECT_URL = "https://fjkzchmcjmslwrwfakcx.supabase.co";
         const PUBLIC_ANON_KEY = "sb_publishable_4MnHiwh04iMIwD_qDgMPMA_QMij3f8-";
         
         let allPlayers = []; 
         let currentDisplayList = []; 
-        let ipGroups = {}; 
+        let hardwareGroups = {}; 
+        let householdGroups = {}; 
         
         let currentPage = 1;
-        const itemsPerPage = 1000;
+        let itemsPerPage = 100;
+        let searchTimeout = null;
 
-        // Formats raw GUID with dashes and hashes it to match the C# App
+        function getIconForFlag(flag) {
+            switch(flag.toUpperCase()) {
+                case 'BANNED': return '<i class="fa-solid fa-ban"></i>';
+                case 'KOS': return '<i class="fa-solid fa-crosshairs"></i>';
+                case 'MODDER': return '<i class="fa-solid fa-code"></i>';
+                case 'SUS': return '<i class="fa-solid fa-user-secret"></i>';
+                case 'LEGIT': return '<i class="fa-solid fa-check-circle"></i>';
+                case 'FRIEND': return '<i class="fa-solid fa-user-group"></i>';
+                default: return '<i class="fa-solid fa-circle-question"></i>';
+            }
+        }
+
+        // Upgraded GUID Hashing: Detects if input is already an MD5 Hash (length 32)
         function processGuid(rawInput) {
-            // 1. Clean it: remove any existing dashes/spaces and make it uppercase
             let clean = rawInput.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+            if(clean.length === 0) return "";
             
-            // 2. Format it: insert a dash every 2 characters (e.g., 3E-02-11...)
+            // Bypass: If it is already exactly 32 characters, it is an MD5 hash. Return directly.
+            if(clean.length === 32) return clean; 
+            
+            // Otherwise, assume raw input: insert dashes and hash it.
             let formatted = clean.match(/.{1,2}/g).join('-');
-            
-            // 3. Hash it: MD5 hash the formatted string and uppercase the result
             return CryptoJS.MD5(formatted).toString().toUpperCase();
         }
 
-        // Toast Notification System
+        function processStringHash(rawInput) {
+            if (rawInput === "" || rawInput === "0.0.0.0") return rawInput;
+            return CryptoJS.MD5(rawInput).toString().toUpperCase();
+        }
+
+        // Live Hash Preview Function
+        function previewHash(inputId, previewId) {
+            const input = document.getElementById(inputId).value.trim();
+            const previewEl = document.getElementById(previewId);
+            if (input.length > 0) {
+                const hashed = inputId === 'manageGuid' ? processGuid(input) : processStringHash(input);
+                previewEl.style.display = 'block';
+                previewEl.querySelector('span').innerText = hashed;
+            } else {
+                previewEl.style.display = 'none';
+            }
+        }
+
         function showToast(message, type = 'info') {
             const toast = document.getElementById("toast");
-            toast.innerText = message;
+            toast.querySelector('span').innerText = message;
             toast.className = `show ${type}`;
             setTimeout(() => { toast.className = toast.className.replace("show", "").trim(); }, 3000);
         }
 
-        // Tab Switching
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             btnElement.classList.add('active');
-
-            if (tabId === 'reportView') {
-                checkAuth();
-            }
+            if (tabId === 'reportView') checkAuth();
         }
 
-        // DB Fetch Loop
+        function updateStatistics() {
+            document.getElementById('statTotal').innerText = allPlayers.length.toLocaleString();
+            let banned = 0, modders = 0, sus = 0;
+            allPlayers.forEach(p => {
+                let f = p.Flag.toUpperCase();
+                if (f === 'BANNED' || f === 'KOS') banned++;
+                if (f === 'MODDER') modders++;
+                if (f === 'SUS') sus++;
+            });
+            document.getElementById('statBanned').innerText = banned.toLocaleString();
+            document.getElementById('statModders').innerText = modders.toLocaleString();
+            document.getElementById('statSus').innerText = sus.toLocaleString();
+        }
+
         async function loadPlayers() {
             try {
                 let fetchMore = true;
@@ -298,9 +534,9 @@
                 const tableBody = document.getElementById('playerTableBody');
 
                 while (fetchMore) {
-                    tableBody.innerHTML = `<tr><td colspan='4' style='text-align:center; padding: 40px;'><div class='loader'></div> Syncing records... (${offset} loaded)</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan='4' style='text-align:center; padding: 80px;'><div class='loader' style='margin-right: 10px;'></div> Compiling records from Supabase... (${offset} loaded)</td></tr>`;
                     
-                    const response = await fetch(`${PROJECT_URL}/rest/v1/PlayerList?select=Username,Status,GUID,IP_Address,Last_Met&limit=${fetchLimit}&offset=${offset}`, {
+                    const response = await fetch(`${PROJECT_URL}/rest/v1/PlayerList?select=Username,Status,GUID,IP_Address,Local_IP,Console,Mic,Last_Met&limit=${fetchLimit}&offset=${offset}`, {
                         method: 'GET',
                         headers: {
                             'apikey': PUBLIC_ANON_KEY,
@@ -317,6 +553,10 @@
                     else offset += fetchLimit;
                 }
 
+                allPlayers = [];
+                hardwareGroups = {};
+                householdGroups = {};
+
                 rawPlayers.forEach(player => {
                     let rawStatus = player.Status || "Not Set";
                     let cleanFlag = rawStatus.includes('(') ? rawStatus.split('(')[0].trim() : rawStatus.trim();
@@ -326,106 +566,183 @@
                         Flag: cleanFlag,
                         GUID: player.GUID || "Unknown",
                         IP: player.IP_Address || "Unknown",
+                        LocalIP: player.Local_IP || "Unknown",
+                        Region: player.Console || "Unknown",
+                        Mic: player.Mic !== null ? player.Mic.toString() : "false",
                         LastMet: player.Last_Met || "N/A"
                     };
 
                     allPlayers.push(pData);
 
+                    // Separate Grouping Logic
                     if (pData.IP && pData.IP !== "0.0.0.0" && pData.IP !== "Unknown") {
-                        if (!ipGroups[pData.IP]) ipGroups[pData.IP] = [];
-                        ipGroups[pData.IP].push(pData);
+                        if (!householdGroups[pData.IP]) householdGroups[pData.IP] = [];
+                        householdGroups[pData.IP].push(pData);
+
+                        if (pData.LocalIP && pData.LocalIP !== "0.0.0.0" && pData.LocalIP !== "Unknown") {
+                            const hwKey = `${pData.IP} &bull; Local: ${pData.LocalIP}`;
+                            if (!hardwareGroups[hwKey]) hardwareGroups[hwKey] = [];
+                            hardwareGroups[hwKey].push(pData);
+                        }
                     }
                 });
 
                 currentDisplayList = [...allPlayers];
+                updateStatistics();
                 sortData();
                 renderSharedIPs();
+                populateDatalist();
 
             } catch (error) {
                 console.error("Error:", error);
-                document.getElementById('playerTableBody').innerHTML = "<tr><td colspan='4' style='text-align:center; color: #ef4444;'>Failed to connect to database.</td></tr>";
+                document.getElementById('playerTableBody').innerHTML = "<tr><td colspan='4' style='text-align:center; color: #ef4444;'><i class='fa-solid fa-triangle-exclamation'></i> Connection timeout: Failed to fetch database.</td></tr>";
+            }
+        }
+        
+        // Populates the HTML datalist with all known usernames for quick searching
+        function populateDatalist() {
+            const datalist = document.getElementById('playerNamesList');
+            if (!datalist) return;
+            datalist.innerHTML = "";
+            
+            const uniqueNames = [...new Set(allPlayers.map(p => p.Username))].sort((a, b) => a.localeCompare(b));
+            
+            uniqueNames.forEach(name => {
+                if (name !== "Unknown") {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    datalist.appendChild(opt);
+                }
+            });
+        }
+
+        // Triggered when a user selects a name from the Datalist search box
+        function handleNameSelect() {
+            const name = document.getElementById('searchUsername').value.trim();
+            if (!name) return;
+            
+            const player = allPlayers.find(p => p.Username.toLowerCase() === name.toLowerCase());
+            if (player) {
+                document.getElementById('manageGuid').value = player.GUID;
+                previewHash('manageGuid', 'hashPreviewGuid');
+                pullPlayerData();
+                document.getElementById('searchUsername').value = ""; // Clear the search bar
             }
         }
 
-        // Render Shared IPs
+        function appendPlayerRow(tbody, p) {
+            const cssClass = "bg-" + p.Flag.replace(/\s+/g, '-');
+            const icon = getIconForFlag(p.Flag);
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="padding-left: 30px; border-left: 2px solid var(--border); font-weight: 500;">${p.Username}</td>
+                <td><span class="badge ${cssClass}">${icon} ${p.Flag}</span></td>
+                <td class="guid-font" style="font-size: 11px;" title="${p.GUID}">${p.GUID.substring(0, 16)}...</td>
+                <td>${p.LastMet}</td>
+            `;
+            tbody.appendChild(row);
+        }
+
         function renderSharedIPs() {
-            const tbody = document.getElementById('ipTableBody');
-            tbody.innerHTML = ""; 
-            let hasAltAccounts = false;
+            const hwBody = document.getElementById('hardwareTableBody');
+            const hhBody = document.getElementById('householdTableBody');
+            hwBody.innerHTML = ""; 
+            hhBody.innerHTML = ""; 
 
-            for (const [ip, players] of Object.entries(ipGroups)) {
+            let hasHw = false;
+            for (const [hwKey, players] of Object.entries(hardwareGroups)) {
                 if (players.length > 1) { 
-                    hasAltAccounts = true;
+                    hasHw = true;
                     const headerRow = document.createElement('tr');
-                    headerRow.innerHTML = `<td colspan="4" class="ip-header">NETWORK MATCH: ${ip} &nbsp; &bull; &nbsp; ${players.length} Accounts Found</td>`;
-                    tbody.appendChild(headerRow);
-
-                    players.forEach(p => {
-                        const cssClass = "bg-" + p.Flag.replace(/\s+/g, '-');
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td style="padding-left: 30px; border-left: 2px solid #334155;">${p.Username}</td>
-                            <td><span class="badge ${cssClass}">${p.Flag}</span></td>
-                            <td style="font-family: monospace; color: #94a3b8;">${p.GUID}</td>
-                            <td>${p.LastMet}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
+                    headerRow.innerHTML = `<td colspan="4" class="ip-header"><i class="fa-solid fa-microchip" style="margin-right:8px;"></i> CONSOLE MATCH &nbsp; | &nbsp; ${players.length} Linked Profiles</td>`;
+                    hwBody.appendChild(headerRow);
+                    players.forEach(p => appendPlayerRow(hwBody, p));
                 }
             }
-            if (!hasAltAccounts) {
-                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No matching network IPs found.</td></tr>";
+            if (!hasHw) hwBody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 40px;'>No exact hardware matches detected.</td></tr>";
+
+            let hasHh = false;
+            for (const [ip, players] of Object.entries(householdGroups)) {
+                if (players.length > 1) { 
+                    hasHh = true;
+                    const headerRow = document.createElement('tr');
+                    headerRow.innerHTML = `<td colspan="4" class="ip-header"><i class="fa-solid fa-house-signal" style="margin-right:8px;"></i> NETWORK MATCH &nbsp; | &nbsp; ${players.length} Linked Profiles</td>`;
+                    hhBody.appendChild(headerRow);
+                    players.forEach(p => appendPlayerRow(hhBody, p));
+                }
             }
+            if (!hasHh) hhBody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 40px;'>No correlated household networks detected.</td></tr>";
         }
 
-        // Render DB Table
+        function changePageSize() {
+            itemsPerPage = parseInt(document.getElementById('pageSize').value);
+            currentPage = 1;
+            renderTable();
+        }
+
         function renderTable() {
             const tableBody = document.getElementById('playerTableBody');
             tableBody.innerHTML = ""; 
 
             const totalPages = Math.ceil(currentDisplayList.length / itemsPerPage);
-            document.getElementById('pageIndicator').innerText = `Page ${currentPage} of ${totalPages || 1} (${currentDisplayList.length.toLocaleString()} total)`;
+            document.getElementById('pageIndicator').innerText = `Page ${currentPage} of ${totalPages || 1} (${currentDisplayList.length.toLocaleString()} Total)`;
             document.getElementById('prevBtn').disabled = currentPage === 1;
             document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
 
             const pageData = currentDisplayList.slice((currentPage - 1) * itemsPerPage, ((currentPage - 1) * itemsPerPage) + itemsPerPage);
 
             if (pageData.length === 0) {
-                tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No records match your criteria.</td></tr>";
+                tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 60px;'>No records found matching your search.</td></tr>";
                 return;
             }
 
             pageData.forEach(player => {
                 const cssClass = "bg-" + player.Flag.replace(/\s+/g, '-');
+                const icon = getIconForFlag(player.Flag);
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td style="font-weight: 500;">${player.Username}</td>
-                    <td><span class="badge ${cssClass}">${player.Flag}</span></td>
-                    <td style="font-family: monospace; color: #94a3b8;">${player.GUID}</td>
+                    <td style="font-weight: 600;">${player.Username}</td>
+                    <td><span class="badge ${cssClass}">${icon} ${player.Flag}</span></td>
+                    <td class="guid-font">${player.GUID}</td>
                     <td>${player.LastMet}</td>
                 `;
                 tableBody.appendChild(row);
             });
         }
 
-        // DB Logic
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(executeSearch, 250);
+        }
+
         function executeSearch() {
             const query = document.getElementById('searchInput').value.trim();
             const searchType = document.getElementById('searchType').value;
+            const lowerQuery = query.toLowerCase();
 
-            if (query === "") { clearSearch(); return; }
-
-            if (searchType === "name") {
-                const lowerQuery = query.toLowerCase();
-                currentDisplayList = allPlayers.filter(p => p.Username.toLowerCase().includes(lowerQuery));
-            } else if (searchType === "guid") {
-                const hashedTarget = processGuid(query);
-                currentDisplayList = allPlayers.filter(p => p.GUID === hashedTarget);
+            if (query === "") { 
+                currentDisplayList = [...allPlayers];
+            } else {
+                currentDisplayList = allPlayers.filter(p => {
+                    if (searchType === "name") return p.Username.toLowerCase().includes(lowerQuery);
+                    if (searchType === "guid_hash") return p.GUID.toLowerCase().includes(lowerQuery);
+                    if (searchType === "guid_raw") {
+                        const hashedTarget = processGuid(query);
+                        return p.GUID.includes(hashedTarget) || p.GUID.toLowerCase().includes(lowerQuery);
+                    }
+                    if (searchType === "status") return p.Flag.toLowerCase().includes(lowerQuery);
+                    
+                    if (searchType === "ip_hash") return (p.IP || "").toLowerCase().includes(lowerQuery) || (p.LocalIP || "").toLowerCase().includes(lowerQuery);
+                    if (searchType === "ip_raw") {
+                        const hashedIp = processStringHash(query);
+                        return (p.IP || "").includes(hashedIp) || (p.LocalIP || "").includes(hashedIp);
+                    }
+                    return false;
+                });
             }
+            currentPage = 1;
             sortData();
         }
-
-        function handleEnter(event) { if (event.key === 'Enter') executeSearch(); }
         
         function clearSearch() {
             document.getElementById('searchInput').value = "";
@@ -438,8 +755,12 @@
             currentDisplayList.sort((a, b) => {
                 if (sortMode === 'username_asc') return a.Username.localeCompare(b.Username);
                 if (sortMode === 'username_desc') return b.Username.localeCompare(a.Username);
+                
                 if (sortMode === 'flag_asc') return a.Flag.localeCompare(b.Flag);
                 if (sortMode === 'flag_desc') return b.Flag.localeCompare(a.Flag);
+                
+                if (sortMode === 'guid_asc') return a.GUID.localeCompare(b.GUID);
+                
                 if (sortMode === 'lastmet_desc') return b.LastMet.localeCompare(a.LastMet);
                 if (sortMode === 'lastmet_asc') return a.LastMet.localeCompare(b.LastMet);
                 return 0;
@@ -454,7 +775,27 @@
             document.querySelector('.table-container').scrollTop = 0;
         }
 
-        // --- AUTHENTICATION & DATABASE MANAGEMENT ---
+        function exportCSV() {
+            if (currentDisplayList.length === 0) {
+                showToast("No data to export.", "error");
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Username,Status,Hashed_GUID,IP_Address_Hash,Local_IP_Hash,Region_Hash,Mic,Last_Met\n";
+            currentDisplayList.forEach(p => {
+                let row = `"${p.Username}","${p.Flag}","${p.GUID}","${p.IP}","${p.LocalIP}","${p.Region}","${p.Mic}","${p.LastMet}"`;
+                csvContent += row + "\r\n";
+            });
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "XUID_Flagger_Export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- AUTHENTICATION & DB MANAGEMENT ---
 
         function checkAuth() {
             const token = localStorage.getItem('supabaseToken');
@@ -472,7 +813,7 @@
             const password = document.getElementById('loginPassword').value;
 
             if (!email || !password) {
-                showToast("Please enter both email and password.", "error");
+                showToast("Credentials required.", "error");
                 return;
             }
 
@@ -482,44 +823,124 @@
                     headers: { 'apikey': PUBLIC_ANON_KEY, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-
                 const data = await response.json();
-
                 if (response.ok && data.access_token) {
                     localStorage.setItem('supabaseToken', data.access_token);
                     document.getElementById('loginEmail').value = "";
                     document.getElementById('loginPassword').value = "";
-                    showToast("Login successful!", "success");
+                    showToast("Authentication confirmed.", "success");
                     checkAuth();
                 } else {
-                    showToast(data.error_description || "Invalid login credentials.", "error");
+                    showToast(data.error_description || "Invalid credentials.", "error");
                 }
             } catch (error) {
-                showToast("Network error during login.", "error");
+                showToast("Authorization server offline.", "error");
             }
         }
 
         function handleLogout() {
             localStorage.removeItem('supabaseToken');
-            showToast("You have been logged out.", "info");
+            showToast("Session terminated.", "info");
             checkAuth();
         }
 
-        async function savePlayer() {
-            const rawGuid = document.getElementById('manageGuid').value.trim();
-            const username = document.getElementById('manageUsername').value.trim();
-            const ip = document.getElementById('manageIp').value.trim() || "Unknown";
-            const flag = document.getElementById('manageReason').value;
+        // Setup Hash Placeholder Fields for Lookups
+        function setupHashField(elementId, existingHash) {
+            const el = document.getElementById(elementId);
+            el.value = ""; // Clear any previous manual input
+            el.dataset.existingHash = existingHash; // Store the hash from the DB in a dataset attribute
+            
+            if (existingHash && existingHash !== "Unknown" && existingHash !== "0.0.0.0") {
+                el.placeholder = "Hidden (Hashed). Type to override.";
+            } else {
+                el.placeholder = "Not set in database. Type to assign.";
+            }
+            
+            // Clear any live hash previews
+            const previewEl = document.getElementById(elementId.replace('manage', 'hashPreview'));
+            if (previewEl) previewEl.style.display = 'none';
+        }
 
-            if (!rawGuid || !username) {
-                showToast("GUID and GamerTag are required.", "error");
+        // PULL DATA LOGIC
+        function pullPlayerData() {
+            const rawGuid = document.getElementById('manageGuid').value.trim();
+            if (!rawGuid) {
+                showToast("Provide a raw GUID to fetch.", "error");
                 return;
             }
 
-            const finalGuid = processGuid(rawGuid);
+            const hashedGuid = processGuid(rawGuid);
+            const player = allPlayers.find(p => p.GUID === hashedGuid);
 
+            if (player) {
+                showToast("Player data fetched successfully.", "success");
+                
+                // Unhide the update form
+                document.getElementById('updateFields').style.display = 'block';
+                
+                // Populate Username
+                document.getElementById('manageUsername').value = player.Username !== "Unknown" ? player.Username : "";
+                
+                // Select matching Flag dropdown
+                const flagSelect = document.getElementById('manageReason');
+                let flagFound = false;
+                for (let i = 0; i < flagSelect.options.length; i++) {
+                    if (flagSelect.options[i].value.toUpperCase() === player.Flag.toUpperCase()) {
+                        flagSelect.selectedIndex = i;
+                        flagFound = true;
+                        break;
+                    }
+                }
+                if (!flagFound) flagSelect.value = "Not Set";
+
+                // Map Hashed Network details to placeholders
+                setupHashField('manageIp', player.IP);
+                setupHashField('manageLocalIp', player.LocalIP);
+                setupHashField('manageRegion', player.Region);
+
+                // Map Mic bool
+                document.getElementById('manageMic').value = player.Mic === "true" ? "true" : "false";
+
+            } else {
+                showToast("Record not found. Only existing entries can be updated.", "error");
+                document.getElementById('updateFields').style.display = 'none';
+            }
+        }
+
+        // SAVE UPDATE LOGIC
+        async function savePlayer() {
+            const rawGuid = document.getElementById('manageGuid').value.trim();
+            const username = document.getElementById('manageUsername').value.trim();
+            const flagTag = document.getElementById('manageReason').value;
+            const hasMic = document.getElementById('manageMic').value === "true";
+
+            if (!rawGuid || !username) {
+                showToast("GUID and GamerTag are strictly required.", "error");
+                return;
+            }
+
+            // Extract values. If user typed nothing, fallback to the original DB Hash stored during lookup.
+            const rawExIp = document.getElementById('manageIp').value.trim();
+            const hashExIp = rawExIp ? processStringHash(rawExIp) : (document.getElementById('manageIp').dataset.existingHash || "0.0.0.0");
+            
+            const rawInIp = document.getElementById('manageLocalIp').value.trim();
+            const hashInIp = rawInIp ? processStringHash(rawInIp) : (document.getElementById('manageLocalIp').dataset.existingHash || "0.0.0.0");
+
+            const rawRegion = document.getElementById('manageRegion').value.trim();
+            const hashRegion = rawRegion ? processStringHash(rawRegion) : (document.getElementById('manageRegion').dataset.existingHash || "Unknown");
+
+            // Apply exactly the same formatting as the C# tool
+            const finalGuid = processGuid(rawGuid);
+            const formattedFlag = `${flagTag}(${username})`;
+
+            // Match C# Timestamp syntax exactly: MM/dd/yyyy/HH:mm
             const now = new Date();
-            const timeString = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+            const dd = now.getDate().toString().padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const hh = now.getHours().toString().padStart(2, '0');
+            const min = now.getMinutes().toString().padStart(2, '0');
+            const timeString = `${mm}/${dd}/${yyyy}/${hh}:${min}`;
 
             try {
                 const response = await fetch(`${PROJECT_URL}/rest/v1/PlayerList`, {
@@ -530,73 +951,70 @@
                         'Content-Type': 'application/json',
                         'Prefer': 'resolution=merge-duplicates, return=minimal'
                     },
-                    body: JSON.stringify({
-                        GUID: finalGuid,
-                        Username: username,
-                        Status: flag,
-                        IP_Address: ip,
-                        Last_Met: timeString
+                    body: JSON.stringify({ 
+                        GUID: finalGuid, 
+                        Username: username, 
+                        Status: formattedFlag, 
+                        IP_Address: hashExIp, 
+                        Local_IP: hashInIp, 
+                        Console: hashRegion,
+                        Mic: hasMic,
+                        Last_Met: timeString 
                     })
                 });
 
                 if (response.ok) {
-                    showToast("Player saved successfully!", "success");
-                    document.getElementById('manageGuid').value = "";
-                    document.getElementById('manageUsername').value = "";
-                    document.getElementById('manageIp').value = "";
+                    showToast("Database successfully updated.", "success");
                     
-                    // Refresh data in background
-                    allPlayers = [];
-                    ipGroups = {};
-                    loadPlayers();
+                    // Reset Editor
+                    document.getElementById('manageGuid').value = "";
+                    document.getElementById('updateFields').style.display = 'none';
+                    document.getElementById('hashPreviewGuid').style.display = 'none';
+                    
+                    loadPlayers(); 
                 } else {
-                    showToast("Failed to save player. Check permissions.", "error");
+                    showToast("Update rejected. Check admin rights.", "error");
                 }
             } catch (error) {
-                showToast("Network error while saving.", "error");
+                showToast("Network transmission failed.", "error");
             }
         }
 
         async function deletePlayer() {
-            const rawGuid = document.getElementById('manageGuid').value.trim();
-
-            if (!rawGuid) {
-                showToast("Enter a GUID to delete.", "error");
-                return;
-            }
-
+            const rawGuid = document.getElementById('deleteGuid').value.trim();
+            if (!rawGuid) { showToast("Provide a GUID to wipe.", "error"); return; }
+            
             const finalGuid = processGuid(rawGuid);
-
-            if (!confirm(`Are you sure you want to permanently delete the record for this GUID?\n\nTarget Hash: ${finalGuid}`)) return;
+            if (!confirm(`WARNING: You are about to wipe tracking history for:\n\nHash: ${finalGuid}\n\nProceed?`)) return;
 
             try {
                 const response = await fetch(`${PROJECT_URL}/rest/v1/PlayerList?GUID=eq.${finalGuid}`, {
                     method: 'DELETE',
-                    headers: {
-                        'apikey': PUBLIC_ANON_KEY,
-                        'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}`
-                    }
+                    headers: { 'apikey': PUBLIC_ANON_KEY, 'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}` }
                 });
 
                 if (response.ok) {
-                    showToast("Player deleted successfully!", "success");
-                    document.getElementById('manageGuid').value = "";
-                    document.getElementById('manageUsername').value = "";
-                    document.getElementById('manageIp').value = "";
+                    showToast("Record successfully purged.", "success");
+                    document.getElementById('deleteGuid').value = "";
                     
-                    // Refresh data in background
-                    allPlayers = [];
-                    ipGroups = {};
+                    // Hide the update form if the deleted GUID was currently being viewed
+                    const currentManageGuid = processGuid(document.getElementById('manageGuid').value.trim());
+                    if (currentManageGuid === finalGuid) {
+                        document.getElementById('manageGuid').value = "";
+                        document.getElementById('updateFields').style.display = 'none';
+                        document.getElementById('hashPreviewGuid').style.display = 'none';
+                    }
+                    
                     loadPlayers();
                 } else {
-                    showToast("Failed to delete player.", "error");
+                    showToast("Purge failed. Target may not exist.", "error");
                 }
             } catch (error) {
-                showToast("Network error while deleting.", "error");
+                showToast("Network failure during deletion.", "error");
             }
         }
 
-        // Init
+        // Initialize Engine
         loadPlayers();
     </script>
 </body>
