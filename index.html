@@ -312,7 +312,7 @@
                 
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>GamerTag (Required)</label>
+                        <label>GamerTag (Required if no GUID)</label>
                         <div class="input-with-icon">
                             <input type="text" id="reportUsername" list="reportNamesList" placeholder="Search by Name..." onchange="handleReportNameSelect()" autocomplete="off">
                             <i class="fa-solid fa-user-tag"></i>
@@ -320,7 +320,7 @@
                         <datalist id="reportNamesList"></datalist>
                     </div>
                     <div class="form-group">
-                        <label>GUID (Optional if in database)</label>
+                        <label>GUID (Required if no GamerTag)</label>
                         <div class="input-with-icon">
                             <input type="text" id="reportGuid" placeholder="Auto-filled if found" autocomplete="off">
                             <i class="fa-solid fa-fingerprint"></i>
@@ -908,13 +908,17 @@
         async function submitReport() {
             const btn = document.getElementById('btnSubmitReport');
             let rawGuid = document.getElementById('reportGuid').value.trim();
-            const username = document.getElementById('reportUsername').value.trim();
+            let username = document.getElementById('reportUsername').value.trim();
             const reason = document.getElementById('reportReason').value;
             const evidence = document.getElementById('reportEvidence').value.trim();
 
-            if (!username) {
-                showToast("GamerTag is a required field.", "error");
+            if (!username && !rawGuid) {
+                showToast("You must provide either a GamerTag or a GUID.", "error");
                 return;
+            }
+
+            if (!username) {
+                username = "Unknown";
             }
 
             btn.disabled = true;
