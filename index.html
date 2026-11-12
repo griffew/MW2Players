@@ -1067,14 +1067,24 @@
 
         async function loadReports() {
             try {
+                const token = localStorage.getItem('supabaseToken');
+                if (!token) return;
+
                 const response = await fetch(`${PROJECT_URL}/rest/v1/ReportTable?select=*&order=id.desc`, {
                     method: 'GET',
                     headers: {
                         'apikey': PUBLIC_ANON_KEY,
-                        'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
                 
+                // If the token is expired/invalid, wipe it and kick back to login
+                if (response.status === 401) {
+                    showToast("Session expired. Please log in again.", "error");
+                    handleLogout();
+                    return;
+                }
+
                 if (response.ok) {
                     pendingReports = await response.json();
                     renderReports();
