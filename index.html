@@ -207,7 +207,7 @@
                     </select>
                     <div class="search-container">
                         <i class="fa-solid fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Type to filter anywhere within the selected column..." oninput="debounceSearch()" autocomplete="off" spellcheck="false">
+                        <input type="text" id="searchInput" placeholder="Type to filter anywhere within the selected column..." oninput="debounceSearch()" autocomplete="off" spellcheck="false" name="db_search_input">
                     </div>
                 </div>
                 <div class="toolbar-group">
@@ -312,17 +312,17 @@
                 
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>Target GamerTag (Required)</label>
+                        <label>GamerTag (Required)</label>
                         <div class="input-with-icon">
-                            <input type="text" id="reportUsername" list="reportNamesList" placeholder="Search by Name..." onchange="handleReportNameSelect()">
+                            <input type="text" id="reportUsername" list="reportNamesList" placeholder="Search by Name..." onchange="handleReportNameSelect()" autocomplete="off">
                             <i class="fa-solid fa-user-tag"></i>
                         </div>
                         <datalist id="reportNamesList"></datalist>
                     </div>
                     <div class="form-group">
-                        <label>Target GUID (Optional if in database)</label>
+                        <label>GUID (Optional if in database)</label>
                         <div class="input-with-icon">
-                            <input type="text" id="reportGuid" placeholder="Auto-filled if found">
+                            <input type="text" id="reportGuid" placeholder="Auto-filled if found" autocomplete="off">
                             <i class="fa-solid fa-fingerprint"></i>
                         </div>
                     </div>
@@ -343,17 +343,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Your Discord Username (Required for follow-up)</label>
-                    <div class="input-with-icon">
-                        <input type="text" id="reportDiscord" placeholder="e.g. yourname#1234">
-                        <i class="fa-brands fa-discord"></i>
-                    </div>
-                </div>
-
-                <div class="form-group">
                     <label>Evidence Link / Additional Comments (Optional)</label>
                     <div class="input-with-icon">
-                        <input type="text" id="reportEvidence" placeholder="YouTube or image link...">
+                        <input type="text" id="reportEvidence" placeholder="YouTube or image link..." autocomplete="off">
                         <i class="fa-solid fa-link"></i>
                     </div>
                 </div>
@@ -370,13 +362,13 @@
                 <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Enter your admin credentials to access database modification tools.</p>
                 <div class="form-group">
                     <div class="input-with-icon">
-                        <input type="text" id="loginEmail" placeholder="Administrator Email">
+                        <input type="text" id="loginEmail" placeholder="Administrator Username" autocomplete="username">
                         <i class="fa-solid fa-envelope"></i>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="input-with-icon">
-                        <input type="password" id="loginPassword" placeholder="••••••••">
+                        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
                         <i class="fa-solid fa-key"></i>
                     </div>
                 </div>
@@ -400,17 +392,17 @@
                             <div class="form-group">
                                 <label>Find Profile by GamerTag</label>
                                 <div class="input-with-icon">
-                                    <input type="text" id="searchUsername" list="playerNamesList" placeholder="Search Database..." onchange="handleNameSelect()">
+                                    <input type="text" id="searchUsername" list="playerNamesList" placeholder="Search Database..." onchange="handleNameSelect()" autocomplete="off">
                                     <i class="fa-solid fa-users"></i>
                                 </div>
                                 <!-- Datalist for fast searches -->
                             </div>
 
                             <div class="form-group">
-                                <label>Or Provide Target GUID (Raw or Hashed)</label>
+                                <label>Or Provide GUID (Raw or Hashed)</label>
                                 <div style="display: flex; gap: 10px;">
                                     <div class="input-with-icon" style="flex: 1;">
-                                        <input type="text" id="manageGuid" placeholder="e.g. 3e02... or MD5" oninput="previewHash('manageGuid', 'hashPreviewGuid')">
+                                        <input type="text" id="manageGuid" placeholder="e.g. 3e02... or MD5" oninput="previewHash('manageGuid', 'hashPreviewGuid')" autocomplete="off">
                                         <i class="fa-solid fa-fingerprint"></i>
                                     </div>
                                     <button class="btn-primary" onclick="pullPlayerData()" style="border-radius: 6px;"><i class="fa-solid fa-cloud-arrow-down"></i> Fetch</button>
@@ -425,7 +417,7 @@
                                 <div class="form-group">
                                     <label>GamerTag (Required)</label>
                                     <div class="input-with-icon">
-                                        <input type="text" id="manageUsername" placeholder="e.g. Modder_99">
+                                        <input type="text" id="manageUsername" placeholder="e.g. Modder_99" autocomplete="off">
                                         <i class="fa-solid fa-user-tag"></i>
                                     </div>
                                 </div>
@@ -450,7 +442,7 @@
                                 <div class="form-group">
                                     <label>External IP (Raw Input)</label>
                                     <div class="input-with-icon">
-                                        <input type="text" id="manageIp" oninput="previewHash('manageIp', 'hashPreviewExIp')">
+                                        <input type="text" id="manageIp" oninput="previewHash('manageIp', 'hashPreviewExIp')" autocomplete="off">
                                         <i class="fa-solid fa-globe"></i>
                                     </div>
                                     <div id="hashPreviewExIp" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
@@ -458,7 +450,7 @@
                                 <div class="form-group">
                                     <label>Local IP (Raw Input)</label>
                                     <div class="input-with-icon">
-                                        <input type="text" id="manageLocalIp" oninput="previewHash('manageLocalIp', 'hashPreviewInIp')">
+                                        <input type="text" id="manageLocalIp" oninput="previewHash('manageLocalIp', 'hashPreviewInIp')" autocomplete="off">
                                         <i class="fa-solid fa-network-wired"></i>
                                     </div>
                                     <div id="hashPreviewInIp" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
@@ -469,7 +461,7 @@
                                 <div class="form-group">
                                     <label>Console Region</label>
                                     <div class="input-with-icon">
-                                        <input type="text" id="manageRegion" oninput="previewHash('manageRegion', 'hashPreviewRegion')">
+                                        <input type="text" id="manageRegion" oninput="previewHash('manageRegion', 'hashPreviewRegion')" autocomplete="off">
                                         <i class="fa-solid fa-earth-americas"></i>
                                     </div>
                                     <div id="hashPreviewRegion" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
@@ -496,9 +488,9 @@
                         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Permamently wipe a player's tracking history from the Supabase infrastructure.</p>
                         
                         <div class="form-group">
-                            <label>Target GUID to Erase (Raw or Hashed)</label>
+                            <label>GUID to Erase (Raw or Hashed)</label>
                             <div class="input-with-icon">
-                                <input type="text" id="deleteGuid" placeholder="Enter GUID for deletion">
+                                <input type="text" id="deleteGuid" placeholder="Enter GUID for deletion" autocomplete="off">
                                 <i class="fa-solid fa-skull"></i>
                             </div>
                         </div>
@@ -517,10 +509,10 @@
                                 <tr>
                                     <th style="width: 15%;">Reported At</th>
                                     <th style="width: 25%;">Target Data</th>
-                                    <th style="width: 15%;">Offense Reason</th>
+                                    <th style="width: 20%;">Offense Reason</th>
                                     <th style="width: 15%;">Submitter HWID</th>
-                                    <th style="width: 15%;">Evidence / Discord</th>
-                                    <th style="width: 15%;">Actions</th>
+                                    <th style="width: 15%;">Evidence</th>
+                                    <th style="width: 10%;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="adminReportsBody">
@@ -555,7 +547,6 @@
         function getDeviceHWID() {
             let hwid = localStorage.getItem('reporter_hwid');
             if (!hwid) {
-                // Generate a random 16-byte hex string via CryptoJS
                 hwid = 'HWID-' + CryptoJS.lib.WordArray.random(16).toString();
                 localStorage.setItem('reporter_hwid', hwid);
             }
@@ -919,11 +910,10 @@
             let rawGuid = document.getElementById('reportGuid').value.trim();
             const username = document.getElementById('reportUsername').value.trim();
             const reason = document.getElementById('reportReason').value;
-            const discord = document.getElementById('reportDiscord').value.trim();
             const evidence = document.getElementById('reportEvidence').value.trim();
 
-            if (!username || !discord) {
-                showToast("GamerTag and Discord Username are required fields.", "error");
+            if (!username) {
+                showToast("GamerTag is a required field.", "error");
                 return;
             }
 
@@ -931,6 +921,7 @@
             btn.innerHTML = "<div class='loader'></div> Transmitting...";
 
             let cleanGuid = "Unknown";
+            
             if (!rawGuid) {
                 const foundPlayer = allPlayers.find(p => p.Username.toLowerCase() === username.toLowerCase());
                 if (foundPlayer) {
@@ -979,7 +970,7 @@
                         GUID: cleanGuid, 
                         GamerTag: username, 
                         Reason: reason, 
-                        Discord: discord, 
+                        Discord: "", // Keep passing empty string so the DB doesn't fail a NOT NULL constraint
                         Evidence: evidence,
                         Submitter_HWID: submitterHwid,
                         Reported_At: timeString
@@ -992,7 +983,6 @@
                     
                     document.getElementById('reportGuid').value = "";
                     document.getElementById('reportUsername').value = "";
-                    document.getElementById('reportDiscord').value = "";
                     document.getElementById('reportEvidence').value = "";
                 } else {
                     showToast("Submission failed. Check database permissions.", "error");
@@ -1078,7 +1068,6 @@
                     }
                 });
                 
-                // If the token is expired/invalid, wipe it and kick back to login
                 if (response.status === 401) {
                     showToast("Session expired. Please log in again.", "error");
                     handleLogout();
@@ -1100,7 +1089,7 @@
             const tbody = document.getElementById('adminReportsBody');
             tbody.innerHTML = "";
             if (pendingReports.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding: 40px;'>No pending reports found.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; padding: 40px;'>No pending reports found.</td></tr>";
                 return;
             }
             pendingReports.forEach(report => {
@@ -1109,7 +1098,7 @@
                     <td style="font-size: 12px; color: var(--text-muted);">${report.Reported_At || "Unknown"}</td>
                     <td><div style="font-weight: 600;">${report.GamerTag}</div><div class="guid-font" style="font-size:10px;" title="${report.GUID}">${report.GUID.substring(0, 16)}...</div></td>
                     <td style="color: #fdba74; font-size: 13px;">${report.Reason}</td>
-                    <td><div style="font-size: 13px;">${report.Discord}</div><div class="guid-font" style="font-size:9px;" title="Submitter HWID">HWID: ${report.Submitter_HWID ? report.Submitter_HWID.substring(0,12)+'...' : 'N/A'}</div></td>
+                    <td><div class="guid-font" style="font-size:10px;" title="Submitter HWID">${report.Submitter_HWID ? report.Submitter_HWID.substring(0,12)+'...' : 'N/A'}</div></td>
                     <td style="font-size: 12px;">${formatEvidence(report.Evidence)}</td>
                     <td>
                         <div style="display: flex; gap: 5px;">
@@ -1142,7 +1131,11 @@
             try {
                 const response = await fetch(`${PROJECT_URL}/rest/v1/ReportTable?id=eq.${id}`, {
                     method: 'DELETE',
-                    headers: { 'apikey': PUBLIC_ANON_KEY, 'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}` }
+                    headers: { 
+                        'apikey': PUBLIC_ANON_KEY, 
+                        'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}`,
+                        'Prefer': 'return=representation'
+                    }
                 });
                 
                 if (response.ok) {
@@ -1294,7 +1287,11 @@
             try {
                 const response = await fetch(`${PROJECT_URL}/rest/v1/PlayerList?GUID=eq.${finalGuid}`, {
                     method: 'DELETE',
-                    headers: { 'apikey': PUBLIC_ANON_KEY, 'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}` }
+                    headers: { 
+                        'apikey': PUBLIC_ANON_KEY, 
+                        'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}`,
+                        'Prefer': 'return=representation'
+                    }
                 });
 
                 if (response.ok) {
