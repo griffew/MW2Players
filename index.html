@@ -48,8 +48,8 @@
         .header p { color: var(--text-muted); font-size: 15px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
 
         /* Navigation Tabs */
-        .tab-container { display: flex; gap: 5px; margin-bottom: 25px; border-bottom: 1px solid var(--border); overflow-x: auto; padding-bottom: 2px; }
-        .tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 14px 24px; font-size: 14px; cursor: pointer; font-weight: 600; transition: var(--transition); position: relative; border-radius: var(--radius) var(--radius) 0 0; display: flex; align-items: center; gap: 8px; }
+        .tab-container { display: flex; gap: 5px; margin-bottom: 25px; border-bottom: 1px solid var(--border); overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+        .tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 14px 24px; font-size: 14px; cursor: pointer; font-weight: 600; transition: var(--transition); position: relative; border-radius: var(--radius) var(--radius) 0 0; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
         .tab-btn:hover { color: var(--text-main); background-color: rgba(255,255,255,0.03); }
         .tab-btn.active { color: var(--accent); background-color: rgba(239, 68, 68, 0.05); }
         .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background-color: var(--accent); border-radius: 2px 2px 0 0; box-shadow: 0 -2px 10px var(--accent-glow); }
@@ -101,8 +101,8 @@
         .search-container input { padding-left: 40px; }
 
         /* Table Styles */
-        .table-container { background-color: var(--bg-panel); border-radius: var(--radius); border: 1px solid var(--border); overflow-y: auto; max-height: 650px; box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2); }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
+        .table-container { background-color: var(--bg-panel); border-radius: var(--radius); border: 1px solid var(--border); overflow: auto; max-height: 650px; box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2); }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
         th { background-color: rgba(0,0,0,0.3); padding: 16px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
         td { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #d4d4d8; }
         tr:hover td { background-color: rgba(255,255,255,0.02); color: #fff; }
@@ -122,7 +122,7 @@
         .bg-Not-Set { background-color: rgba(161, 161, 170, 0.15); color: #d4d4d8; border: 1px solid rgba(161, 161, 170, 0.4); }
 
         /* Admin Management Grid */
-        .admin-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .admin-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
         .admin-panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .admin-panel h3 { margin-bottom: 25px; font-size: 18px; display: flex; align-items: center; gap: 10px; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         
@@ -139,6 +139,20 @@
         /* Loading Spinner */
         .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%; border-top-color: var(--accent); animation: spin 0.8s linear infinite; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Mobile Responsiveness Updates */
+        @media (max-width: 850px) {
+            .admin-dashboard { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .toolbar-group { flex-direction: column; align-items: stretch; width: 100%; gap: 10px; }
+            .toolbar-group > * { width: 100% !important; margin-bottom: 5px; }
+            .toolbar-group .search-container { width: 100%; }
+            .header h1 { font-size: 26px; }
+            .tab-btn { font-size: 13px; padding: 12px 16px; }
+            .admin-panel { padding: 20px; }
+            body { padding: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -153,7 +167,8 @@
         <div class="tab-container">
             <button class="tab-btn active" onclick="switchTab('dbView', this)"><i class="fa-solid fa-database"></i> Database Index</button>
             <button class="tab-btn" onclick="switchTab('ipView', this)"><i class="fa-solid fa-network-wired"></i> Network Matches (Alt Accounts)</button>
-            <button class="tab-btn" onclick="switchTab('reportView', this)"><i class="fa-solid fa-shield-halved"></i> Management</button>
+            <button class="tab-btn" onclick="switchTab('reportView', this)"><i class="fa-solid fa-flag"></i> Report Player</button>
+            <button class="tab-btn" onclick="switchTab('managementView', this)"><i class="fa-solid fa-shield-halved"></i> Management</button>
         </div>
 
         <!-- TAB 1: DATABASE -->
@@ -224,9 +239,9 @@
                         <option value="500">500</option>
                         <option value="1000">1000</option>
                     </select>
-                    <div style="width: 1px; height: 20px; background-color: var(--border); margin: 0 10px;"></div>
+                    <div style="width: 1px; height: 20px; background-color: var(--border); margin: 0 10px;" class="desktop-only"></div>
                     <button id="prevBtn" onclick="changePage(-1)" disabled><i class="fa-solid fa-chevron-left"></i> Prev</button>
-                    <span id="pageIndicator" style="font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono'; margin: 0 10px;">Loading...</span>
+                    <span id="pageIndicator" style="font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono'; margin: 0 10px; text-align: center;">Loading...</span>
                     <button id="nextBtn" onclick="changePage(1)" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
@@ -289,8 +304,66 @@
             </div>
         </div>
 
-        <!-- TAB 3: PLAYER MANAGEMENT -->
+        <!-- TAB 3: REPORT HACKER (PUBLIC SUBMISSION) -->
         <div id="reportView" class="view-section">
+            <div class="admin-panel" style="max-width: 650px; margin: 0 auto;">
+                <h3 style="color: #ef4444;"><i class="fa-solid fa-flag"></i> Submit Player Report</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Help keep the community clean. Submitted reports are sent directly to the backend for manual administrative review.</p>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Target GamerTag (Required)</label>
+                        <div class="input-with-icon">
+                            <input type="text" id="reportUsername" list="reportNamesList" placeholder="Search by Name..." onchange="handleReportNameSelect()">
+                            <i class="fa-solid fa-user-tag"></i>
+                        </div>
+                        <datalist id="reportNamesList"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>Target GUID (Optional if in database)</label>
+                        <div class="input-with-icon">
+                            <input type="text" id="reportGuid" placeholder="Auto-filled if found">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Reason / Offense (Required)</label>
+                    <div class="input-with-icon">
+                        <select id="reportReason">
+                            <option value="Aimbot / ESP">Aimbot / ESP</option>
+                            <option value="Modded Lobby Host">Modded Lobby Host</option>
+                            <option value="Stat Manipulation">Stat Manipulation</option>
+                            <option value="Griefing / Malicious">Griefing / Malicious</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <i class="fa-solid fa-gavel"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Discord Username (Required for follow-up)</label>
+                    <div class="input-with-icon">
+                        <input type="text" id="reportDiscord" placeholder="e.g. yourname#1234">
+                        <i class="fa-brands fa-discord"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Evidence Link / Additional Comments (Optional)</label>
+                    <div class="input-with-icon">
+                        <input type="text" id="reportEvidence" placeholder="YouTube or image link...">
+                        <i class="fa-solid fa-link"></i>
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="submitReport()" id="btnSubmitReport" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 15px;"><i class="fa-solid fa-paper-plane"></i> Transmit Report</button>
+            </div>
+        </div>
+
+        <!-- TAB 4: ADMIN MANAGEMENT -->
+        <div id="managementView" class="view-section">
             <!-- Login -->
             <div id="loginContainer" class="admin-panel auth-card">
                 <h3 style="justify-content: center; border: none; font-size: 22px;"><i class="fa-solid fa-user-lock"></i> System Authentication</h3>
@@ -330,14 +403,14 @@
                                     <input type="text" id="searchUsername" list="playerNamesList" placeholder="Search Database..." onchange="handleNameSelect()">
                                     <i class="fa-solid fa-users"></i>
                                 </div>
-                                <datalist id="playerNamesList"></datalist>
+                                <!-- Datalist for fast searches -->
                             </div>
 
                             <div class="form-group">
                                 <label>Or Provide Target GUID (Raw or Hashed)</label>
                                 <div style="display: flex; gap: 10px;">
                                     <div class="input-with-icon" style="flex: 1;">
-                                        <input type="text" id="manageGuid" placeholder="e.g. 3e02118c... or MD5" oninput="previewHash('manageGuid', 'hashPreviewGuid')">
+                                        <input type="text" id="manageGuid" placeholder="e.g. 3e02... or MD5" oninput="previewHash('manageGuid', 'hashPreviewGuid')">
                                         <i class="fa-solid fa-fingerprint"></i>
                                     </div>
                                     <button class="btn-primary" onclick="pullPlayerData()" style="border-radius: 6px;"><i class="fa-solid fa-cloud-arrow-down"></i> Fetch</button>
@@ -432,6 +505,30 @@
                         <button class="btn-danger" onclick="deletePlayer()" style="width: 100%; margin-top: 10px; padding: 14px;"><i class="fa-solid fa-fire"></i> Purge Record</button>
                     </div>
                 </div>
+
+                <!-- Admin Pending Reports Section -->
+                <div class="admin-panel">
+                    <h3><i class="fa-solid fa-inbox"></i> Pending Player Reports</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Review public submissions. Clicking 'Review' will automatically load the reported player into the Update Form above for database cross-referencing.</p>
+                    
+                    <div class="table-container" style="max-height: 400px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">Reported At</th>
+                                    <th style="width: 25%;">Target Data</th>
+                                    <th style="width: 15%;">Offense Reason</th>
+                                    <th style="width: 15%;">Submitter HWID</th>
+                                    <th style="width: 15%;">Evidence / Discord</th>
+                                    <th style="width: 15%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminReportsBody">
+                                <tr><td colspan="6" style="text-align: center; padding: 40px;">Fetching pending reports...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -445,6 +542,7 @@
         const PUBLIC_ANON_KEY = "sb_publishable_4MnHiwh04iMIwD_qDgMPMA_QMij3f8-";
         
         let allPlayers = []; 
+        let pendingReports = [];
         let currentDisplayList = []; 
         let hardwareGroups = {}; 
         let householdGroups = {}; 
@@ -452,6 +550,17 @@
         let currentPage = 1;
         let itemsPerPage = 100;
         let searchTimeout = null;
+
+        // Device HWID Generator (Browser Fingerprint for abuse tracking)
+        function getDeviceHWID() {
+            let hwid = localStorage.getItem('reporter_hwid');
+            if (!hwid) {
+                // Generate a random 16-byte hex string via CryptoJS
+                hwid = 'HWID-' + CryptoJS.lib.WordArray.random(16).toString();
+                localStorage.setItem('reporter_hwid', hwid);
+            }
+            return hwid;
+        }
 
         function getIconForFlag(flag) {
             switch(flag.toUpperCase()) {
@@ -465,15 +574,12 @@
             }
         }
 
-        // Upgraded GUID Hashing: Detects if input is already an MD5 Hash (length 32)
         function processGuid(rawInput) {
+            if (rawInput === "Unknown") return "Unknown";
             let clean = rawInput.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
             if(clean.length === 0) return "";
-            
-            // Bypass: If it is already exactly 32 characters, it is an MD5 hash. Return directly.
             if(clean.length === 32) return clean; 
             
-            // Otherwise, assume raw input: insert dashes and hash it.
             let formatted = clean.match(/.{1,2}/g).join('-');
             return CryptoJS.MD5(formatted).toString().toUpperCase();
         }
@@ -483,7 +589,6 @@
             return CryptoJS.MD5(rawInput).toString().toUpperCase();
         }
 
-        // Live Hash Preview Function
         function previewHash(inputId, previewId) {
             const input = document.getElementById(inputId).value.trim();
             const previewEl = document.getElementById(previewId);
@@ -500,7 +605,7 @@
             const toast = document.getElementById("toast");
             toast.querySelector('span').innerText = message;
             toast.className = `show ${type}`;
-            setTimeout(() => { toast.className = toast.className.replace("show", "").trim(); }, 3000);
+            setTimeout(() => { toast.className = toast.className.replace("show", "").trim(); }, 4000);
         }
 
         function switchTab(tabId, btnElement) {
@@ -508,7 +613,7 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             btnElement.classList.add('active');
-            if (tabId === 'reportView') checkAuth();
+            if (tabId === 'managementView') checkAuth();
         }
 
         function updateStatistics() {
@@ -574,7 +679,6 @@
 
                     allPlayers.push(pData);
 
-                    // Separate Grouping Logic
                     if (pData.IP && pData.IP !== "0.0.0.0" && pData.IP !== "Unknown") {
                         if (!householdGroups[pData.IP]) householdGroups[pData.IP] = [];
                         householdGroups[pData.IP].push(pData);
@@ -599,11 +703,12 @@
             }
         }
         
-        // Populates the HTML datalist with all known usernames for quick searching
         function populateDatalist() {
             const datalist = document.getElementById('playerNamesList');
-            if (!datalist) return;
-            datalist.innerHTML = "";
+            const reportDatalist = document.getElementById('reportNamesList');
+            
+            if (datalist) datalist.innerHTML = "";
+            if (reportDatalist) reportDatalist.innerHTML = "";
             
             const uniqueNames = [...new Set(allPlayers.map(p => p.Username))].sort((a, b) => a.localeCompare(b));
             
@@ -611,12 +716,15 @@
                 if (name !== "Unknown") {
                     const opt = document.createElement('option');
                     opt.value = name;
-                    datalist.appendChild(opt);
+                    if (datalist) datalist.appendChild(opt);
+                    
+                    const opt2 = document.createElement('option');
+                    opt2.value = name;
+                    if (reportDatalist) reportDatalist.appendChild(opt2);
                 }
             });
         }
 
-        // Triggered when a user selects a name from the Datalist search box
         function handleNameSelect() {
             const name = document.getElementById('searchUsername').value.trim();
             if (!name) return;
@@ -626,7 +734,17 @@
                 document.getElementById('manageGuid').value = player.GUID;
                 previewHash('manageGuid', 'hashPreviewGuid');
                 pullPlayerData();
-                document.getElementById('searchUsername').value = ""; // Clear the search bar
+                document.getElementById('searchUsername').value = ""; 
+            }
+        }
+        
+        function handleReportNameSelect() {
+            const name = document.getElementById('reportUsername').value.trim();
+            if (!name) return;
+            const player = allPlayers.find(p => p.Username.toLowerCase() === name.toLowerCase());
+            if (player) {
+                document.getElementById('reportGuid').value = player.GUID;
+                showToast("Player found in database. GUID auto-filled.", "info");
             }
         }
 
@@ -795,6 +913,98 @@
             document.body.removeChild(link);
         }
 
+        // --- PUBLIC REPORT SUBMISSION WITH COUNTER ---
+        async function submitReport() {
+            const btn = document.getElementById('btnSubmitReport');
+            let rawGuid = document.getElementById('reportGuid').value.trim();
+            const username = document.getElementById('reportUsername').value.trim();
+            const reason = document.getElementById('reportReason').value;
+            const discord = document.getElementById('reportDiscord').value.trim();
+            const evidence = document.getElementById('reportEvidence').value.trim();
+
+            if (!username || !discord) {
+                showToast("GamerTag and Discord Username are required fields.", "error");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = "<div class='loader'></div> Transmitting...";
+
+            let cleanGuid = "Unknown";
+            if (!rawGuid) {
+                const foundPlayer = allPlayers.find(p => p.Username.toLowerCase() === username.toLowerCase());
+                if (foundPlayer) {
+                    cleanGuid = foundPlayer.GUID; 
+                }
+            } else {
+                cleanGuid = processGuid(rawGuid);
+            }
+
+            const now = new Date();
+            const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+            const dd = now.getDate().toString().padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const hh = now.getHours().toString().padStart(2, '0');
+            const min = now.getMinutes().toString().padStart(2, '0');
+            const timeString = `${mm}/${dd}/${yyyy}/${hh}:${min}`;
+            
+            const submitterHwid = getDeviceHWID();
+
+            try {
+                let currentReportCount = 0;
+                if (cleanGuid !== "Unknown") {
+                    const countResponse = await fetch(`${PROJECT_URL}/rest/v1/ReportTable?select=GUID&GUID=eq.${cleanGuid}`, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': PUBLIC_ANON_KEY,
+                            'Authorization': `Bearer ${PUBLIC_ANON_KEY}`
+                        }
+                    });
+
+                    if (countResponse.ok) {
+                        const countData = await countResponse.json();
+                        currentReportCount = countData.length;
+                    }
+                }
+
+                const response = await fetch(`${PROJECT_URL}/rest/v1/ReportTable`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': PUBLIC_ANON_KEY,
+                        'Authorization': `Bearer ${PUBLIC_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ 
+                        GUID: cleanGuid, 
+                        GamerTag: username, 
+                        Reason: reason, 
+                        Discord: discord, 
+                        Evidence: evidence,
+                        Submitter_HWID: submitterHwid,
+                        Reported_At: timeString
+                    })
+                });
+
+                if (response.ok || response.status === 201) {
+                    const totalReports = currentReportCount + 1;
+                    showToast(`Report securely submitted! This player now has ${totalReports} report(s) against them.`, "success");
+                    
+                    document.getElementById('reportGuid').value = "";
+                    document.getElementById('reportUsername').value = "";
+                    document.getElementById('reportDiscord').value = "";
+                    document.getElementById('reportEvidence').value = "";
+                } else {
+                    showToast("Submission failed. Check database permissions.", "error");
+                }
+            } catch (error) {
+                showToast("Network transmission failed.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> Transmit Report";
+            }
+        }
+
         // --- AUTHENTICATION & DB MANAGEMENT ---
 
         function checkAuth() {
@@ -802,6 +1012,7 @@
             if (token) {
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('managementContainer').style.display = 'block';
+                loadReports(); 
             } else {
                 document.getElementById('loginContainer').style.display = 'block';
                 document.getElementById('managementContainer').style.display = 'none';
@@ -844,11 +1055,101 @@
             checkAuth();
         }
 
-        // Setup Hash Placeholder Fields for Lookups
+        // --- ADMIN REPORT REVIEWS ---
+
+        function formatEvidence(evidence) {
+            if (!evidence) return "None";
+            if (evidence.startsWith("http")) {
+                return `<a href="${evidence}" target="_blank" style="color: #38bdf8; text-decoration: underline;">Link <i class="fa-solid fa-up-right-from-square" style="font-size:10px;"></i></a>`;
+            }
+            return `<span title="${evidence}">${evidence.length > 20 ? evidence.substring(0,20)+'...' : evidence}</span>`;
+        }
+
+        async function loadReports() {
+            try {
+                const response = await fetch(`${PROJECT_URL}/rest/v1/ReportTable?select=*&order=id.desc`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': PUBLIC_ANON_KEY,
+                        'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    pendingReports = await response.json();
+                    renderReports();
+                } else {
+                    document.getElementById('adminReportsBody').innerHTML = "<tr><td colspan='6' style='text-align:center;'>Failed to load reports.</td></tr>";
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderReports() {
+            const tbody = document.getElementById('adminReportsBody');
+            tbody.innerHTML = "";
+            if (pendingReports.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding: 40px;'>No pending reports found.</td></tr>";
+                return;
+            }
+            pendingReports.forEach(report => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-size: 12px; color: var(--text-muted);">${report.Reported_At || "Unknown"}</td>
+                    <td><div style="font-weight: 600;">${report.GamerTag}</div><div class="guid-font" style="font-size:10px;" title="${report.GUID}">${report.GUID.substring(0, 16)}...</div></td>
+                    <td style="color: #fdba74; font-size: 13px;">${report.Reason}</td>
+                    <td><div style="font-size: 13px;">${report.Discord}</div><div class="guid-font" style="font-size:9px;" title="Submitter HWID">HWID: ${report.Submitter_HWID ? report.Submitter_HWID.substring(0,12)+'...' : 'N/A'}</div></td>
+                    <td style="font-size: 12px;">${formatEvidence(report.Evidence)}</td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn-primary" style="padding: 6px 10px; font-size: 11px;" onclick="processReport('${report.GUID}')" title="Review Profile"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-danger" style="padding: 6px 10px; font-size: 11px;" onclick="deleteReportRecord(${report.id})" title="Dismiss Report"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function processReport(guid) {
+            document.getElementById('manageGuid').value = guid;
+            previewHash('manageGuid', 'hashPreviewGuid');
+            pullPlayerData();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            if (guid !== "Unknown") {
+                showToast("Report loaded into Update tool.", "info");
+            } else {
+                showToast("Notice: Report lacked a GUID. Fetching skipped.", "info");
+                const report = pendingReports.find(r => r.GUID === guid);
+                if (report) document.getElementById('manageUsername').value = report.GamerTag;
+            }
+        }
+
+        async function deleteReportRecord(id) {
+            if (!confirm("Are you sure you want to dismiss and delete this report?")) return;
+            try {
+                const response = await fetch(`${PROJECT_URL}/rest/v1/ReportTable?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': PUBLIC_ANON_KEY, 'Authorization': `Bearer ${localStorage.getItem('supabaseToken')}` }
+                });
+                
+                if (response.ok) {
+                    showToast("Report dismissed and deleted.", "success");
+                    loadReports();
+                } else {
+                    showToast("Failed to delete report.", "error");
+                }
+            } catch (e) {
+                showToast("Network error.", "error");
+            }
+        }
+
         function setupHashField(elementId, existingHash) {
             const el = document.getElementById(elementId);
-            el.value = ""; // Clear any previous manual input
-            el.dataset.existingHash = existingHash; // Store the hash from the DB in a dataset attribute
+            el.value = ""; 
+            el.dataset.existingHash = existingHash; 
             
             if (existingHash && existingHash !== "Unknown" && existingHash !== "0.0.0.0") {
                 el.placeholder = "Hidden (Hashed). Type to override.";
@@ -856,16 +1157,14 @@
                 el.placeholder = "Not set in database. Type to assign.";
             }
             
-            // Clear any live hash previews
             const previewEl = document.getElementById(elementId.replace('manage', 'hashPreview'));
             if (previewEl) previewEl.style.display = 'none';
         }
 
-        // PULL DATA LOGIC
         function pullPlayerData() {
             const rawGuid = document.getElementById('manageGuid').value.trim();
-            if (!rawGuid) {
-                showToast("Provide a raw GUID to fetch.", "error");
+            if (!rawGuid || rawGuid === "Unknown") {
+                showToast("Provide a valid GUID to fetch.", "error");
                 return;
             }
 
@@ -875,13 +1174,9 @@
             if (player) {
                 showToast("Player data fetched successfully.", "success");
                 
-                // Unhide the update form
                 document.getElementById('updateFields').style.display = 'block';
-                
-                // Populate Username
                 document.getElementById('manageUsername').value = player.Username !== "Unknown" ? player.Username : "";
                 
-                // Select matching Flag dropdown
                 const flagSelect = document.getElementById('manageReason');
                 let flagFound = false;
                 for (let i = 0; i < flagSelect.options.length; i++) {
@@ -893,21 +1188,24 @@
                 }
                 if (!flagFound) flagSelect.value = "Not Set";
 
-                // Map Hashed Network details to placeholders
                 setupHashField('manageIp', player.IP);
                 setupHashField('manageLocalIp', player.LocalIP);
                 setupHashField('manageRegion', player.Region);
 
-                // Map Mic bool
                 document.getElementById('manageMic').value = player.Mic === "true" ? "true" : "false";
 
             } else {
-                showToast("Record not found. Only existing entries can be updated.", "error");
-                document.getElementById('updateFields').style.display = 'none';
+                showToast("Record not found. Saving will generate a new entry.", "info");
+                document.getElementById('updateFields').style.display = 'block';
+                document.getElementById('manageUsername').value = "";
+                document.getElementById('manageReason').value = "Not Set";
+                setupHashField('manageIp', "Unknown");
+                setupHashField('manageLocalIp', "Unknown");
+                setupHashField('manageRegion', "Unknown");
+                document.getElementById('manageMic').value = "false";
             }
         }
 
-        // SAVE UPDATE LOGIC
         async function savePlayer() {
             const rawGuid = document.getElementById('manageGuid').value.trim();
             const username = document.getElementById('manageUsername').value.trim();
@@ -919,7 +1217,6 @@
                 return;
             }
 
-            // Extract values. If user typed nothing, fallback to the original DB Hash stored during lookup.
             const rawExIp = document.getElementById('manageIp').value.trim();
             const hashExIp = rawExIp ? processStringHash(rawExIp) : (document.getElementById('manageIp').dataset.existingHash || "0.0.0.0");
             
@@ -929,11 +1226,9 @@
             const rawRegion = document.getElementById('manageRegion').value.trim();
             const hashRegion = rawRegion ? processStringHash(rawRegion) : (document.getElementById('manageRegion').dataset.existingHash || "Unknown");
 
-            // Apply exactly the same formatting as the C# tool
             const finalGuid = processGuid(rawGuid);
             const formattedFlag = `${flagTag}(${username})`;
 
-            // Match C# Timestamp syntax exactly: MM/dd/yyyy/HH:mm
             const now = new Date();
             const mm = (now.getMonth() + 1).toString().padStart(2, '0');
             const dd = now.getDate().toString().padStart(2, '0');
@@ -966,7 +1261,6 @@
                 if (response.ok) {
                     showToast("Database successfully updated.", "success");
                     
-                    // Reset Editor
                     document.getElementById('manageGuid').value = "";
                     document.getElementById('updateFields').style.display = 'none';
                     document.getElementById('hashPreviewGuid').style.display = 'none';
@@ -997,7 +1291,6 @@
                     showToast("Record successfully purged.", "success");
                     document.getElementById('deleteGuid').value = "";
                     
-                    // Hide the update form if the deleted GUID was currently being viewed
                     const currentManageGuid = processGuid(document.getElementById('manageGuid').value.trim());
                     if (currentManageGuid === finalGuid) {
                         document.getElementById('manageGuid').value = "";
