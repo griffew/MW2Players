@@ -187,6 +187,7 @@
         .report-detail { font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
         .report-detail-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
         .report-reason-badge { display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.12); color: #fca5a5; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: 1px solid rgba(239, 68, 68, 0.3); width: fit-content; }
+        .report-reason-badge.appeal-badge { background-color: rgba(59, 130, 246, 0.12); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
         .report-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -194,6 +195,8 @@
 
         /* Pill Badges for Flags (Table) */
         .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        
+        /* Standard Flags */
         .bg-SUS { background-color: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
         .bg-Modder { background-color: rgba(234, 88, 12, 0.15); color: #fdba74; border: 1px solid rgba(234, 88, 12, 0.4); }
         .bg-KOS { background-color: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.5); }
@@ -201,6 +204,18 @@
         .bg-Legit { background-color: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
         .bg-Friend { background-color: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.4); }
         .bg-Not-Set { background-color: rgba(161, 161, 170, 0.15); color: #d4d4d8; border: 1px solid rgba(161, 161, 170, 0.4); }
+        
+        /* Custom, Dev, Admin, Creator Flags */
+        .bg-Custom { background-color: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); }
+        .bg-Admin { background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.25)) !important; color: #93c5fd !important; border: 1px solid rgba(59, 130, 246, 0.6) !important; box-shadow: 0 0 12px rgba(59, 130, 246, 0.3) !important; }
+        .bg-Dev { background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.25)) !important; color: #6ee7b7 !important; border: 1px solid rgba(16, 185, 129, 0.6) !important; box-shadow: 0 0 12px rgba(16, 185, 129, 0.3) !important; }
+        .bg-Creator { 
+            background: linear-gradient(135deg, rgba(217, 70, 239, 0.25), rgba(168, 85, 247, 0.25)) !important; 
+            color: #f0abfc !important; 
+            border: 1px solid rgba(217, 70, 239, 0.6) !important; 
+            box-shadow: 0 0 12px rgba(217, 70, 239, 0.3) !important;
+            text-shadow: 0 0 8px rgba(217, 70, 239, 0.6);
+        }
 
         /* Toast Notifications */
         #toast { visibility: hidden; min-width: 280px; background-color: rgba(24, 24, 27, 0.95); color: #fff; text-align: center; border-radius: 10px; padding: 18px 24px; position: fixed; z-index: 1000; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(20px); font-size: 14px; font-weight: 600; box-shadow: 0 15px 35px rgba(0,0,0,0.5); opacity: 0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
@@ -245,6 +260,7 @@
                 <button class="tab-btn active" onclick="switchTab('dbView', this)"><i class="fa-solid fa-database"></i> Database Index</button>
                 <button class="tab-btn" onclick="switchTab('ipView', this)"><i class="fa-solid fa-network-wired"></i> Network Matches</button>
                 <button class="tab-btn" onclick="switchTab('reportView', this)"><i class="fa-solid fa-flag"></i> Report Player</button>
+                <button class="tab-btn" onclick="switchTab('appealView', this)"><i class="fa-solid fa-scale-balanced"></i> Appeal Flag</button>
                 <button class="tab-btn" onclick="switchTab('managementView', this)"><i class="fa-solid fa-shield-halved"></i> Management</button>
             </div>
         </div>
@@ -413,11 +429,69 @@
             </div>
         </div>
 
+        <!-- NEW TAB: APPEAL FLAG -->
+        <div id="appealView" class="view-section">
+            <div class="admin-panel" style="max-width: 650px; margin: 0 auto; border-top: 4px solid #3b82f6;">
+                <h3 style="color: #fff;"><i class="fa-solid fa-scale-balanced" style="color: #3b82f6;"></i> Appeal / Adjust Status Flag</h3>
+                <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">If you believe you have been flagged incorrectly, use this form to look up your account and submit an adjustment request for admin review.</p>
+                
+                <div class="toolbar" style="margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="color: #93c5fd;">1. Search Your Account</label>
+                        <div style="display: flex; gap: 10px;">
+                            <div class="input-with-icon" style="flex: 1;">
+                                <input type="text" id="appealSearch" list="appealNamesList" placeholder="Enter your GamerTag or Hashed GUID..." autocomplete="off">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
+                            <button class="btn-primary" onclick="lookupAppealAccount()" style="background-color: #3b82f6; border-radius: 8px;"><i class="fa-solid fa-arrow-right"></i> Check</button>
+                        </div>
+                        <datalist id="appealNamesList"></datalist>
+                    </div>
+                </div>
+
+                <div id="appealForm" style="display: none; animation: fadeIn 0.3s ease-out forwards;">
+                    <div style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                        <div style="font-size: 11px; color: #93c5fd; text-transform: uppercase; font-weight: 700; margin-bottom: 5px;">Current Database Status</div>
+                        <div id="appealCurrentStatus" style="font-size: 15px; font-weight: 600; color: #fff;">Searching...</div>
+                        <input type="hidden" id="appealHiddenGuid">
+                        <input type="hidden" id="appealHiddenName">
+                    </div>
+
+                    <div class="form-group">
+                        <label>2. Requested Flag Adjustment</label>
+                        <div class="input-with-icon">
+                            <input type="text" id="appealRequestFlag" list="appealPresets" placeholder="Select or type custom flag..." autocomplete="off">
+                            <i class="fa-solid fa-flag"></i>
+                        </div>
+                        <datalist id="appealPresets">
+                            <option value="Not Set">Not Set (Clear my record)</option>
+                            <option value="Legit">Legit</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Modder">Modder</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Dev">Dev</option>
+                            <option value="Creator">Creator</option>
+                        </datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label>3. Explanation / Comments</label>
+                        <div class="input-with-icon">
+                            <input type="text" id="appealExplanation" placeholder="Explain why your flag should be changed..." autocomplete="off">
+                            <i class="fa-solid fa-comment-dots"></i>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary" onclick="submitAppeal()" id="btnSubmitAppeal" style="width: 100%; margin-top: 15px; padding: 16px; font-size: 15px; background-color: #3b82f6;"><i class="fa-solid fa-paper-plane"></i> Submit Appeal</button>
+                </div>
+            </div>
+        </div>
+
         <!-- TAB 4: ADMIN MANAGEMENT -->
         <div id="managementView" class="view-section">
             <!-- Login -->
-            <div id="loginContainer" class="admin-panel auth-card" style="border-top: 4px solid #3b82f6;">
-                <h3 style="justify-content: center; border: none; font-size: 24px;"><i class="fa-solid fa-user-lock" style="color: #3b82f6;"></i> System Authentication</h3>
+            <div id="loginContainer" class="admin-panel auth-card" style="border-top: 4px solid #10b981;">
+                <h3 style="justify-content: center; border: none; font-size: 24px;"><i class="fa-solid fa-user-lock" style="color: #10b981;"></i> System Authentication</h3>
                 <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 30px;">Enter your admin credentials to access database modification tools.</p>
                 <div class="form-group">
                     <div class="input-with-icon">
@@ -431,7 +505,7 @@
                         <i class="fa-solid fa-key"></i>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="handleLogin()" style="width: 100%; margin-top: 15px; padding: 16px; background-color: #3b82f6;"><i class="fa-solid fa-right-to-bracket"></i> Authenticate</button>
+                <button class="btn-primary" onclick="handleLogin()" style="width: 100%; margin-top: 15px; padding: 16px; background-color: #10b981;"><i class="fa-solid fa-right-to-bracket"></i> Authenticate</button>
             </div>
 
             <!-- Management Dashboard -->
@@ -483,17 +557,21 @@
                                 <div class="form-group">
                                     <label>Classification Flag</label>
                                     <div class="input-with-icon">
-                                        <select id="manageReason">
-                                            <option value="Banned">Banned (Aimbot/Extreme)</option>
-                                            <option value="KOS">KOS (Kill On Sight)</option>
-                                            <option value="Modder">Modder (UAV/ESP)</option>
-                                            <option value="SUS">SUS (Suspicious)</option>
-                                            <option value="Legit">Legit</option>
-                                            <option value="Friend">Friend</option>
-                                            <option value="Not Set">Not Set</option>
-                                        </select>
+                                        <input type="text" id="manageReason" list="manageReasonList" placeholder="Select or type custom flag..." autocomplete="off">
                                         <i class="fa-solid fa-flag"></i>
                                     </div>
+                                    <datalist id="manageReasonList">
+                                        <option value="Creator">Creator (Developer/Admin)</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Dev">Dev</option>
+                                        <option value="Banned">Banned (Aimbot/Extreme)</option>
+                                        <option value="KOS">KOS (Kill On Sight)</option>
+                                        <option value="Modder">Modder (UAV/ESP)</option>
+                                        <option value="SUS">SUS (Suspicious)</option>
+                                        <option value="Legit">Legit</option>
+                                        <option value="Friend">Friend</option>
+                                        <option value="Not Set">Not Set (Clear Flag)</option>
+                                    </datalist>
                                 </div>
                             </div>
                             
@@ -541,29 +619,72 @@
                         </div>
                     </div>
 
-                    <!-- Right Column: Danger Zone -->
-                    <div class="admin-panel" style="border-top: 4px solid var(--accent);">
-                        <h3 style="color: #fff;"><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent);"></i> Danger Zone</h3>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Permamently wipe a player's tracking history from the Supabase infrastructure.</p>
-                        
-                        <div class="form-group">
-                            <label>GUID to Erase (Raw or Hashed)</label>
-                            <div class="input-with-icon">
-                                <input type="text" id="deleteGuid" placeholder="Enter GUID for deletion" autocomplete="off">
-                                <i class="fa-solid fa-skull"></i>
+                    <!-- Right Column (Flex wrapper to stack panels) -->
+                    <div style="display: flex; flex-direction: column; gap: 25px;">
+                        <!-- Danger Zone -->
+                        <div class="admin-panel" style="border-top: 4px solid var(--accent);">
+                            <h3 style="color: #fff;"><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent);"></i> Danger Zone</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Permamently wipe a player's tracking history from the Supabase infrastructure.</p>
+                            
+                            <div class="form-group">
+                                <label>GUID to Erase (Raw or Hashed)</label>
+                                <div class="input-with-icon">
+                                    <input type="text" id="deleteGuid" placeholder="Enter GUID for deletion" autocomplete="off">
+                                    <i class="fa-solid fa-skull"></i>
+                                </div>
                             </div>
+                            <button class="btn-danger" onclick="deletePlayer()" style="width: 100%; margin-top: 15px; padding: 16px;"><i class="fa-solid fa-fire"></i> Purge Record</button>
                         </div>
-                        <button class="btn-danger" onclick="deletePlayer()" style="width: 100%; margin-top: 15px; padding: 16px;"><i class="fa-solid fa-fire"></i> Purge Record</button>
-                    </div>
-                </div>
+                        
+                        <!-- Account Settings -->
+                        <div class="admin-panel" style="border-top: 4px solid #3b82f6;">
+                            <h3 style="color: #fff;"><i class="fa-solid fa-user-gear" style="color: #3b82f6;"></i> Account Settings</h3>
+                            
+                            <!-- Display Name -->
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6;">Set your Discord Username. This will automatically be attached to any reports or appeals you submit from this device.</p>
+                            <div class="form-group" style="margin-bottom: 25px;">
+                                <label>Discord Username / Display Name</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <div class="input-with-icon" style="flex: 1;">
+                                        <input type="text" id="adminDisplayName" placeholder="e.g. OG-BlazeMonkey" autocomplete="off">
+                                        <i class="fa-brands fa-discord"></i>
+                                    </div>
+                                    <button class="btn-primary" onclick="updateAdminProfile()" id="btnUpdateProfile" style="border-radius: 8px; padding: 0 20px; background-color: #3b82f6;"><i class="fa-solid fa-cloud-arrow-up"></i> Save Profile</button>
+                                </div>
+                            </div>
 
-                <!-- OVERHAULED Admin Pending Reports Section -->
-                <div class="admin-panel" style="grid-column: 1 / -1;">
-                    <h3><i class="fa-solid fa-inbox"></i> Pending Player Reports</h3>
-                    <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 25px;">Review public submissions. Clicking 'Review' will automatically load the reported player into the Update Form above for database cross-referencing.</p>
-                    
-                    <div id="adminReportsContainer" class="reports-grid">
-                        <div class="empty-state" style="grid-column: 1 / -1;"><div class="loader"></div> Fetching pending reports...</div>
+                            <div style="height: 1px; background-color: rgba(255,255,255,0.08); margin: 25px 0;"></div>
+                            
+                            <!-- Password -->
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.6;">Update your administrator password. You will use this new password next time you log in.</p>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>New Password</label>
+                                    <div class="input-with-icon">
+                                        <input type="password" id="adminNewPassword" placeholder="••••••••" autocomplete="new-password">
+                                        <i class="fa-solid fa-key"></i>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Confirm Password</label>
+                                    <div class="input-with-icon">
+                                        <input type="password" id="adminConfirmPassword" placeholder="••••••••" autocomplete="new-password">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-primary" onclick="updateAdminPassword()" id="btnUpdatePassword" style="width: 100%; margin-top: 5px; padding: 16px; background-color: #3b82f6;"><i class="fa-solid fa-floppy-disk"></i> Update Password</button>
+                        </div>
+                    </div>
+
+                    <!-- OVERHAULED Admin Pending Reports Section -->
+                    <div class="admin-panel" style="grid-column: 1 / -1;">
+                        <h3><i class="fa-solid fa-inbox"></i> Pending Player Reports & Appeals</h3>
+                        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 25px;">Review public submissions. Clicking 'Review' will automatically load the reported player into the Update Form above for database cross-referencing.</p>
+                        
+                        <div id="adminReportsContainer" class="reports-grid">
+                            <div class="empty-state" style="grid-column: 1 / -1;"><div class="loader"></div> Fetching pending reports...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -598,16 +719,20 @@
             return hwid;
         }
 
+        // Dynamically assign icons. Custom flags get a generic tag icon.
         function getIconForFlag(flag) {
-            switch(flag.toUpperCase()) {
-                case 'BANNED': return '<i class="fa-solid fa-ban"></i>';
-                case 'KOS': return '<i class="fa-solid fa-crosshairs"></i>';
-                case 'MODDER': return '<i class="fa-solid fa-code"></i>';
-                case 'SUS': return '<i class="fa-solid fa-user-secret"></i>';
-                case 'LEGIT': return '<i class="fa-solid fa-check-circle"></i>';
-                case 'FRIEND': return '<i class="fa-solid fa-user-group"></i>';
-                default: return '<i class="fa-solid fa-circle-question"></i>';
-            }
+            const upper = flag.toUpperCase();
+            if (upper.includes('CREATOR')) return '<i class="fa-solid fa-crown" style="color: #e879f9;"></i>';
+            if (upper.includes('ADMIN')) return '<i class="fa-solid fa-shield-halved" style="color: #93c5fd;"></i>';
+            if (upper.includes('DEV')) return '<i class="fa-solid fa-code-commit" style="color: #6ee7b7;"></i>';
+            if (upper.includes('BANNED')) return '<i class="fa-solid fa-ban"></i>';
+            if (upper.includes('KOS')) return '<i class="fa-solid fa-crosshairs"></i>';
+            if (upper.includes('MODDER')) return '<i class="fa-solid fa-code"></i>';
+            if (upper.includes('SUS')) return '<i class="fa-solid fa-user-secret"></i>';
+            if (upper.includes('LEGIT')) return '<i class="fa-solid fa-check-circle"></i>';
+            if (upper.includes('FRIEND')) return '<i class="fa-solid fa-user-group"></i>';
+            if (upper.includes('NOT SET')) return '<i class="fa-solid fa-circle-question"></i>';
+            return '<i class="fa-solid fa-tag"></i>'; 
         }
 
         function processGuid(rawInput) {
@@ -664,9 +789,9 @@
             let banned = 0, modders = 0, sus = 0;
             allPlayers.forEach(p => {
                 let f = p.Flag.toUpperCase();
-                if (f === 'BANNED' || f === 'KOS') banned++;
-                if (f === 'MODDER') modders++;
-                if (f === 'SUS') sus++;
+                if (f.includes('BANNED') || f.includes('KOS')) banned++;
+                if (f.includes('MODDER')) modders++;
+                if (f.includes('SUS')) sus++;
             });
             document.getElementById('statBanned').innerText = banned.toLocaleString();
             document.getElementById('statModders').innerText = modders.toLocaleString();
@@ -749,9 +874,11 @@
         function populateDatalist() {
             const datalist = document.getElementById('playerNamesList');
             const reportDatalist = document.getElementById('reportNamesList');
+            const appealDatalist = document.getElementById('appealNamesList');
             
             if (datalist) datalist.innerHTML = "";
             if (reportDatalist) reportDatalist.innerHTML = "";
+            if (appealDatalist) appealDatalist.innerHTML = "";
             
             const uniqueNames = [...new Set(allPlayers.map(p => p.Username))].sort((a, b) => a.localeCompare(b));
             
@@ -759,11 +886,9 @@
                 if (name !== "Unknown") {
                     const opt = document.createElement('option');
                     opt.value = name;
-                    if (datalist) datalist.appendChild(opt);
-                    
-                    const opt2 = document.createElement('option');
-                    opt2.value = name;
-                    if (reportDatalist) reportDatalist.appendChild(opt2);
+                    if (datalist) datalist.appendChild(opt.cloneNode(true));
+                    if (reportDatalist) reportDatalist.appendChild(opt.cloneNode(true));
+                    if (appealDatalist) appealDatalist.appendChild(opt.cloneNode(true));
                 }
             });
         }
@@ -791,6 +916,109 @@
             }
         }
 
+        // --- NEW: APPEAL LOOKUP LOGIC ---
+        function lookupAppealAccount() {
+            const query = document.getElementById('appealSearch').value.trim();
+            if (!query) {
+                showToast("Please enter a GamerTag or GUID to search.", "error");
+                return;
+            }
+
+            const lowerQuery = query.toLowerCase();
+            const hashedTarget = processGuid(query);
+            
+            // Search by exact GamerTag or matching GUID hash
+            const player = allPlayers.find(p => p.Username.toLowerCase() === lowerQuery || p.GUID === hashedTarget || p.GUID.toLowerCase() === lowerQuery);
+
+            const formEl = document.getElementById('appealForm');
+            const statusEl = document.getElementById('appealCurrentStatus');
+            const hiddenGuid = document.getElementById('appealHiddenGuid');
+            const hiddenName = document.getElementById('appealHiddenName');
+
+            if (player) {
+                const flagFormatted = player.Flag.replace(/\s+/g, '-');
+                const cssClass = "bg-Custom bg-" + flagFormatted;
+                const pIcon = getIconForFlag(player.Flag);
+                
+                statusEl.innerHTML = `<span class="badge ${cssClass}">${pIcon} ${player.Flag}</span> &nbsp;<span style="color:var(--text-muted); font-size: 12px; font-weight: 400;">(${player.Username})</span>`;
+                hiddenGuid.value = player.GUID;
+                hiddenName.value = player.Username !== "Unknown" ? player.Username : "";
+                
+                formEl.style.display = 'block';
+                showToast("Account found. You may now submit an appeal.", "success");
+            } else {
+                formEl.style.display = 'none';
+                showToast("Account not found in tracking database. You do not need to appeal.", "info");
+            }
+        }
+
+        async function submitAppeal() {
+            const btn = document.getElementById('btnSubmitAppeal');
+            const guid = document.getElementById('appealHiddenGuid').value;
+            const username = document.getElementById('appealHiddenName').value;
+            const requestFlag = document.getElementById('appealRequestFlag').value.trim();
+            const explanation = document.getElementById('appealExplanation').value.trim();
+
+            if (!guid) {
+                showToast("Session error. Please search for your account again.", "error");
+                return;
+            }
+
+            if (!requestFlag) {
+                showToast("Requested Flag cannot be empty.", "error");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = "<div class='loader'></div> Submitting Appeal...";
+
+            const now = new Date();
+            const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+            const dd = now.getDate().toString().padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const hh = now.getHours().toString().padStart(2, '0');
+            const min = now.getMinutes().toString().padStart(2, '0');
+            const timeString = `${mm}/${dd}/${yyyy}/${hh}:${min}`;
+            
+            const submitterHwid = getDeviceHWID();
+            const savedDiscord = localStorage.getItem('adminDiscord') || "";
+            const formattedReason = `[APPEAL] -> ${requestFlag}`;
+
+            try {
+                const response = await fetch(`${PROJECT_URL}/rest/v1/ReportTable`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': PUBLIC_ANON_KEY,
+                        'Authorization': `Bearer ${PUBLIC_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ 
+                        GUID: guid, 
+                        GamerTag: username, 
+                        Reason: formattedReason, 
+                        Discord: savedDiscord, 
+                        Evidence: explanation || "No explanation provided.",
+                        Submitter_HWID: submitterHwid,
+                        Reported_At: timeString
+                    })
+                });
+
+                if (response.ok || response.status === 201) {
+                    showToast(`Appeal submitted successfully for admin review.`, "success");
+                    document.getElementById('appealForm').style.display = 'none';
+                    document.getElementById('appealSearch').value = "";
+                } else {
+                    showToast("Submission failed. Check database permissions.", "error");
+                }
+            } catch (error) {
+                showToast("Network transmission failed.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> Submit Appeal";
+            }
+        }
+
         function renderSharedIPs() {
             const hwContainer = document.getElementById('hardwareClusters');
             const hhContainer = document.getElementById('householdClusters');
@@ -812,7 +1040,7 @@
                 `;
                 
                 players.forEach(p => {
-                    const cssClass = "bg-" + p.Flag.replace(/\s+/g, '-');
+                    const cssClass = "bg-Custom bg-" + p.Flag.replace(/\s+/g, '-');
                     const pIcon = getIconForFlag(p.Flag);
                     html += `
                         <tr>
@@ -871,7 +1099,7 @@
             }
 
             pageData.forEach(player => {
-                const cssClass = "bg-" + player.Flag.replace(/\s+/g, '-');
+                const cssClass = "bg-Custom bg-" + player.Flag.replace(/\s+/g, '-');
                 const icon = getIconForFlag(player.Flag);
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1004,6 +1232,7 @@
             const timeString = `${mm}/${dd}/${yyyy}/${hh}:${min}`;
             
             const submitterHwid = getDeviceHWID();
+            const savedDiscord = localStorage.getItem('adminDiscord') || "";
 
             try {
                 let currentReportCount = 0;
@@ -1034,7 +1263,7 @@
                         GUID: cleanGuid, 
                         GamerTag: username, 
                         Reason: reason, 
-                        Discord: "", // Ensure DB doesn't fail NOT NULL constraint
+                        Discord: savedDiscord, 
                         Evidence: evidence,
                         Submitter_HWID: submitterHwid,
                         Reported_At: timeString
@@ -1060,13 +1289,32 @@
         }
 
         // --- AUTHENTICATION & DB MANAGEMENT ---
-
-        function checkAuth() {
+        async function checkAuth() {
             const token = localStorage.getItem('supabaseToken');
             if (token) {
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('managementContainer').style.display = 'block';
-                loadReports(); 
+                try {
+                    const response = await fetch(`${PROJECT_URL}/auth/v1/user`, {
+                        headers: { 'apikey': PUBLIC_ANON_KEY, 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const userData = await response.json();
+                        const dName = userData.user_metadata?.discord_username || "";
+                        localStorage.setItem('adminDiscord', dName);
+                        
+                        const displayNameInput = document.getElementById('adminDisplayName');
+                        if (displayNameInput) displayNameInput.value = dName;
+
+                        document.getElementById('loginContainer').style.display = 'none';
+                        document.getElementById('managementContainer').style.display = 'block';
+                        loadReports(); 
+                    } else {
+                        handleLogout();
+                    }
+                } catch(e) {
+                    document.getElementById('loginContainer').style.display = 'none';
+                    document.getElementById('managementContainer').style.display = 'block';
+                }
             } else {
                 document.getElementById('loginContainer').style.display = 'block';
                 document.getElementById('managementContainer').style.display = 'none';
@@ -1091,6 +1339,11 @@
                 const data = await response.json();
                 if (response.ok && data.access_token) {
                     localStorage.setItem('supabaseToken', data.access_token);
+                    
+                    const dName = data.user?.user_metadata?.discord_username || "";
+                    localStorage.setItem('adminDiscord', dName);
+                    document.getElementById('adminDisplayName').value = dName;
+
                     document.getElementById('loginEmail').value = "";
                     document.getElementById('loginPassword').value = "";
                     showToast("Authentication confirmed.", "success");
@@ -1105,8 +1358,94 @@
 
         function handleLogout() {
             localStorage.removeItem('supabaseToken');
+            localStorage.removeItem('adminDiscord');
             showToast("Session terminated.", "info");
             checkAuth();
+        }
+
+        async function updateAdminProfile() {
+            const dName = document.getElementById('adminDisplayName').value.trim();
+            const btn = document.getElementById('btnUpdateProfile');
+            
+            btn.disabled = true;
+            btn.innerHTML = "<div class='loader'></div> Updating...";
+
+            try {
+                const token = localStorage.getItem('supabaseToken');
+                const response = await fetch(`${PROJECT_URL}/auth/v1/user`, {
+                    method: 'PUT',
+                    headers: { 
+                        'apikey': PUBLIC_ANON_KEY, 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ data: { discord_username: dName } })
+                });
+                
+                if (response.ok) {
+                    showToast("Display name updated successfully.", "success");
+                    localStorage.setItem('adminDiscord', dName);
+                } else {
+                    showToast("Failed to update profile.", "error");
+                }
+            } catch (error) {
+                showToast("Network error.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Save Profile';
+            }
+        }
+        
+        async function updateAdminPassword() {
+            const newPass = document.getElementById('adminNewPassword').value;
+            const confirmPass = document.getElementById('adminConfirmPassword').value;
+            const btn = document.getElementById('btnUpdatePassword');
+
+            if (!newPass || !confirmPass) {
+                showToast("Please fill out both password fields.", "error");
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                showToast("Passwords do not match.", "error");
+                return;
+            }
+
+            if (newPass.length < 6) {
+                showToast("Password must be at least 6 characters.", "error");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = "<div class='loader'></div> Updating...";
+
+            try {
+                const token = localStorage.getItem('supabaseToken');
+                const response = await fetch(`${PROJECT_URL}/auth/v1/user`, {
+                    method: 'PUT',
+                    headers: { 
+                        'apikey': PUBLIC_ANON_KEY, 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password: newPass })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast("Admin password updated successfully.", "success");
+                    document.getElementById('adminNewPassword').value = "";
+                    document.getElementById('adminConfirmPassword').value = "";
+                } else {
+                    showToast(data.error_description || data.msg || "Failed to update password.", "error");
+                }
+            } catch (error) {
+                showToast("Network error while updating password.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Password';
+            }
         }
 
         // --- OVERHAULED ADMIN REPORT REVIEWS ---
@@ -1154,7 +1493,6 @@
                 const card = document.createElement('div');
                 card.className = 'report-card';
                 
-                // Format Evidence Link cleanly
                 let evidenceHtml = `<span style="color: rgba(255,255,255,0.3); font-style: italic;">No evidence provided</span>`;
                 if (report.Evidence && report.Evidence.trim() !== "" && report.Evidence !== "None") {
                     if (report.Evidence.startsWith("http")) {
@@ -1164,6 +1502,12 @@
                     }
                 }
 
+                // Check if this is a standard report or an appeal
+                const isAppeal = report.Reason && report.Reason.startsWith("[APPEAL]");
+                const reasonBadgeClass = isAppeal ? "report-reason-badge appeal-badge" : "report-reason-badge";
+                const reasonIcon = isAppeal ? "fa-scale-balanced" : "fa-triangle-exclamation";
+                const displayReason = isAppeal ? report.Reason.replace("[APPEAL] -> ", "Appeal: Make ") : report.Reason;
+
                 card.innerHTML = `
                     <div class="report-header">
                         <div class="report-title"><i class="fa-solid fa-user-ninja" style="color: var(--text-muted);"></i> ${report.GamerTag}</div>
@@ -1171,7 +1515,7 @@
                     </div>
                     
                     <div style="margin-bottom: 5px;">
-                        <span class="report-reason-badge"><i class="fa-solid fa-triangle-exclamation"></i> ${report.Reason}</span>
+                        <span class="${reasonBadgeClass}"><i class="fa-solid ${reasonIcon}"></i> ${displayReason}</span>
                     </div>
                     
                     <div class="report-detail">
@@ -1180,8 +1524,8 @@
                     </div>
                     
                     <div class="report-detail">
-                        <span class="report-detail-label">Submitter HWID</span>
-                        <span class="guid-font" style="font-size: 11px;">${report.Submitter_HWID || 'N/A'}</span>
+                        <span class="report-detail-label">Submitter</span>
+                        <span class="guid-font" style="font-size: 11px;">${report.Discord || report.Submitter_HWID || 'N/A'}</span>
                     </div>
                     
                     <div class="report-detail" style="margin-bottom: 10px; margin-top: 5px;">
@@ -1267,16 +1611,8 @@
                 document.getElementById('updateFields').style.display = 'block';
                 document.getElementById('manageUsername').value = player.Username !== "Unknown" ? player.Username : "";
                 
-                const flagSelect = document.getElementById('manageReason');
-                let flagFound = false;
-                for (let i = 0; i < flagSelect.options.length; i++) {
-                    if (flagSelect.options[i].value.toUpperCase() === player.Flag.toUpperCase()) {
-                        flagSelect.selectedIndex = i;
-                        flagFound = true;
-                        break;
-                    }
-                }
-                if (!flagFound) flagSelect.value = "Not Set";
+                // Allow the input to accept the custom dynamic flag, or default to Not Set
+                document.getElementById('manageReason').value = player.Flag || "Not Set";
 
                 setupHashField('manageIp', player.IP);
                 setupHashField('manageLocalIp', player.LocalIP);
@@ -1299,11 +1635,16 @@
         async function savePlayer() {
             const rawGuid = document.getElementById('manageGuid').value.trim();
             const username = document.getElementById('manageUsername').value.trim();
-            const flagTag = document.getElementById('manageReason').value;
+            const flagTag = document.getElementById('manageReason').value.trim();
             const hasMic = document.getElementById('manageMic').value === "true";
 
             if (!rawGuid || !username) {
                 showToast("GUID and GamerTag are strictly required.", "error");
+                return;
+            }
+
+            if (!flagTag) {
+                showToast("Classification Flag cannot be empty.", "error");
                 return;
             }
 
