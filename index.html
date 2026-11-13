@@ -91,6 +91,8 @@
         }
         .tab-btn:hover { color: var(--text-main); background-color: rgba(255,255,255,0.05); }
         .tab-btn.active { color: #fff; background-color: var(--accent); box-shadow: 0 4px 15px var(--accent-glow); }
+        
+        .admin-nav-item.active { background-color: #10b981 !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important; }
 
         /* View Sections */
         .view-section { display: none; animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(15px); }
@@ -174,6 +176,7 @@
 
         /* Admin Management Grid */
         .admin-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .admin-dashboard.single-col { grid-template-columns: 1fr; max-width: 800px; margin: 0 auto 25px auto; }
         .admin-panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 35px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); backdrop-filter: blur(10px); }
         .admin-panel h3 { margin-bottom: 25px; font-size: 18px; display: flex; align-items: center; gap: 10px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px; }
         
@@ -261,7 +264,12 @@
                 <button class="tab-btn" onclick="switchTab('ipView', this)"><i class="fa-solid fa-network-wired"></i> Network Matches</button>
                 <button class="tab-btn" onclick="switchTab('reportView', this)"><i class="fa-solid fa-flag"></i> Report Player</button>
                 <button class="tab-btn" onclick="switchTab('appealView', this)"><i class="fa-solid fa-scale-balanced"></i> Appeal Flag</button>
-                <button class="tab-btn" onclick="switchTab('managementView', this)"><i class="fa-solid fa-shield-halved"></i> Management</button>
+                
+                <!-- Admin Auth Tabs -->
+                <button class="tab-btn" id="navManagement" onclick="switchTab('managementView', this)" style="display: none;"><i class="fa-solid fa-shield-halved"></i> Management</button>
+                <button class="tab-btn" id="navAdminSettings" onclick="switchTab('settingsView', this)" style="display: none;"><i class="fa-solid fa-user-gear"></i> Settings</button>
+                
+                <button class="tab-btn" id="navAdminLogin" onclick="switchTab('loginView', this)"><i class="fa-solid fa-right-to-bracket"></i> Admin Login</button>
             </div>
         </div>
 
@@ -487,9 +495,8 @@
             </div>
         </div>
 
-        <!-- TAB 4: ADMIN MANAGEMENT -->
-        <div id="managementView" class="view-section">
-            <!-- Login -->
+        <!-- AUTH: LOGIN VIEW -->
+        <div id="loginView" class="view-section">
             <div id="loginContainer" class="admin-panel auth-card" style="border-top: 4px solid #10b981;">
                 <h3 style="justify-content: center; border: none; font-size: 24px;"><i class="fa-solid fa-user-lock" style="color: #10b981;"></i> System Authentication</h3>
                 <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 30px;">Enter your admin credentials to access database modification tools.</p>
@@ -507,186 +514,188 @@
                 </div>
                 <button class="btn-primary" onclick="handleLogin()" style="width: 100%; margin-top: 15px; padding: 16px; background-color: #10b981;"><i class="fa-solid fa-right-to-bracket"></i> Authenticate</button>
             </div>
+        </div>
 
-            <!-- Management Dashboard -->
+        <!-- SECURE: ADMIN MANAGEMENT TAB -->
+        <div id="managementView" class="view-section">
             <div id="managementContainer" style="display: none;">
-                <div class="toolbar" style="margin-bottom: 25px;">
-                    <div style="font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-shield-check" style="color: #10b981; font-size: 18px;"></i> Secure Session Active</div>
-                    <button onclick="handleLogout()"><i class="fa-solid fa-power-off"></i> Terminate Session</button>
+                
+                <!-- Top Control Bar -->
+                <div class="toolbar" style="margin-bottom: 25px; border-left: 4px solid #10b981;">
+                    <div class="form-group" style="margin: 0; flex: 1;">
+                        <label style="color: #10b981;"><i class="fa-solid fa-magnifying-glass"></i> Load Player Profile from Database</label>
+                        <div style="display: flex; gap: 10px; max-width: 600px;">
+                            <div class="input-with-icon" style="flex: 1;">
+                                <input type="text" id="searchUsername" list="playerNamesList" placeholder="Search by GamerTag..." onchange="handleNameSelect()" autocomplete="off">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div style="color: var(--text-muted); align-self: center; font-size: 12px; font-weight: 600;">OR</div>
+                            <div class="input-with-icon" style="flex: 1.5;">
+                                <input type="text" id="manageGuid" placeholder="Enter Raw/Hashed GUID..." oninput="previewHash('manageGuid', 'hashPreviewGuid')" autocomplete="off">
+                                <i class="fa-solid fa-fingerprint"></i>
+                            </div>
+                            <button class="btn-primary" onclick="pullPlayerData()" style="border-radius: 8px; padding: 0 20px;"><i class="fa-solid fa-cloud-arrow-down"></i> Fetch</button>
+                        </div>
+                        <datalist id="playerNamesList"></datalist>
+                        <div id="hashPreviewGuid" style="font-size: 12px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> Target Hash: <span></span></div>
+                    </div>
                 </div>
 
-                <div class="admin-dashboard">
-                    <!-- Left Column: Update Record -->
-                    <div class="admin-panel" style="border-top: 4px solid #10b981;">
-                        <h3><i class="fa-solid fa-pen-to-square" style="color: #10b981;"></i> Update Existing Record</h3>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Search by GamerTag or enter the target's GUID (Raw or Hashed) and click <b>Fetch Profile</b> to load their current tracking data. Privacy-hashed network data will remain unmodified unless overridden.</p>
-                        
+                <!-- Update Fields Container (Hidden until Fetched) -->
+                <div id="updateFields" class="admin-panel" style="display: none; border-top: 4px solid #10b981; margin-bottom: 25px;">
+                    <h3 style="color: #fff; margin-bottom: 25px;"><i class="fa-solid fa-pen-to-square" style="color: #10b981;"></i> Edit Player Profile</h3>
+                    
+                    <div class="grid-2" style="margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label>GamerTag (Required)</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="manageUsername" placeholder="e.g. Modder_99" autocomplete="off">
+                                <i class="fa-solid fa-user-tag"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Classification Flag (Separate multiples with /)</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="manageReason" list="manageReasonList" placeholder="e.g. Creator / Dev" autocomplete="off">
+                                <i class="fa-solid fa-flag"></i>
+                            </div>
+                            <datalist id="manageReasonList">
+                                <option value="Creator">Creator (Developer/Admin)</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Dev">Dev</option>
+                                <option value="Banned">Banned (Aimbot/Extreme)</option>
+                                <option value="KOS">KOS (Kill On Sight)</option>
+                                <option value="Modder">Modder (UAV/ESP)</option>
+                                <option value="SUS">SUS (Suspicious)</option>
+                                <option value="Legit">Legit</option>
+                                <option value="Friend">Friend</option>
+                                <option value="Not Set">Not Set (Clear Flag)</option>
+                            </datalist>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
+                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 15px; letter-spacing: 1px;"><i class="fa-solid fa-network-wired"></i> Privacy Hashed Network Data</div>
                         <div class="grid-2">
                             <div class="form-group">
-                                <label>Find Profile by GamerTag</label>
+                                <label>External IP (Raw Input)</label>
                                 <div class="input-with-icon">
-                                    <input type="text" id="searchUsername" list="playerNamesList" placeholder="Search Database..." onchange="handleNameSelect()" autocomplete="off">
-                                    <i class="fa-solid fa-users"></i>
+                                    <input type="text" id="manageIp" oninput="previewHash('manageIp', 'hashPreviewExIp')" autocomplete="off">
+                                    <i class="fa-solid fa-globe"></i>
                                 </div>
-                                <datalist id="playerNamesList"></datalist>
+                                <div id="hashPreviewExIp" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
                             </div>
-
                             <div class="form-group">
-                                <label>Or Provide GUID (Raw or Hashed)</label>
-                                <div style="display: flex; gap: 10px;">
-                                    <div class="input-with-icon" style="flex: 1;">
-                                        <input type="text" id="manageGuid" placeholder="e.g. 3e02... or MD5" oninput="previewHash('manageGuid', 'hashPreviewGuid')" autocomplete="off">
-                                        <i class="fa-solid fa-fingerprint"></i>
-                                    </div>
-                                    <button class="btn-primary" onclick="pullPlayerData()" style="border-radius: 8px; padding: 0 20px;"><i class="fa-solid fa-cloud-arrow-down"></i> Fetch</button>
+                                <label>Local IP (Raw Input)</label>
+                                <div class="input-with-icon">
+                                    <input type="text" id="manageLocalIp" oninput="previewHash('manageLocalIp', 'hashPreviewInIp')" autocomplete="off">
+                                    <i class="fa-solid fa-network-wired"></i>
                                 </div>
-                                <div id="hashPreviewGuid" style="font-size: 12px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> Target Hash: <span></span></div>
+                                <div id="hashPreviewInIp" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
                             </div>
-                        </div>
-
-                        <!-- Update Fields (Hidden until Fetched) -->
-                        <div id="updateFields" style="display: none; margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.08);">
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>GamerTag (Required)</label>
-                                    <div class="input-with-icon">
-                                        <input type="text" id="manageUsername" placeholder="e.g. Modder_99" autocomplete="off">
-                                        <i class="fa-solid fa-user-tag"></i>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Classification Flag</label>
-                                    <div class="input-with-icon">
-                                        <input type="text" id="manageReason" list="manageReasonList" placeholder="Select or type custom flag..." autocomplete="off">
-                                        <i class="fa-solid fa-flag"></i>
-                                    </div>
-                                    <datalist id="manageReasonList">
-                                        <option value="Creator">Creator (Developer/Admin)</option>
-                                        <option value="Admin">Admin</option>
-                                        <option value="Dev">Dev</option>
-                                        <option value="Banned">Banned (Aimbot/Extreme)</option>
-                                        <option value="KOS">KOS (Kill On Sight)</option>
-                                        <option value="Modder">Modder (UAV/ESP)</option>
-                                        <option value="SUS">SUS (Suspicious)</option>
-                                        <option value="Legit">Legit</option>
-                                        <option value="Friend">Friend</option>
-                                        <option value="Not Set">Not Set (Clear Flag)</option>
-                                    </datalist>
-                                </div>
-                            </div>
-                            
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>External IP (Raw Input)</label>
-                                    <div class="input-with-icon">
-                                        <input type="text" id="manageIp" oninput="previewHash('manageIp', 'hashPreviewExIp')" autocomplete="off">
-                                        <i class="fa-solid fa-globe"></i>
-                                    </div>
-                                    <div id="hashPreviewExIp" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Local IP (Raw Input)</label>
-                                    <div class="input-with-icon">
-                                        <input type="text" id="manageLocalIp" oninput="previewHash('manageLocalIp', 'hashPreviewInIp')" autocomplete="off">
-                                        <i class="fa-solid fa-network-wired"></i>
-                                    </div>
-                                    <div id="hashPreviewInIp" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
-                                </div>
-                            </div>
-
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>Console Region</label>
-                                    <div class="input-with-icon">
-                                        <input type="text" id="manageRegion" oninput="previewHash('manageRegion', 'hashPreviewRegion')" autocomplete="off">
-                                        <i class="fa-solid fa-earth-americas"></i>
-                                    </div>
-                                    <div id="hashPreviewRegion" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Microphone Found</label>
-                                    <div class="input-with-icon">
-                                        <select id="manageMic">
-                                            <option value="false">False</option>
-                                            <option value="true">True</option>
-                                        </select>
-                                        <i class="fa-solid fa-microphone"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <button class="btn-success" onclick="savePlayer()" style="width: 100%; margin-top: 20px; padding: 16px; font-size: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> Format & Push Update</button>
                         </div>
                     </div>
 
-                    <!-- Right Column (Flex wrapper to stack panels) -->
-                    <div style="display: flex; flex-direction: column; gap: 25px;">
-                        <!-- Danger Zone -->
-                        <div class="admin-panel" style="border-top: 4px solid var(--accent);">
-                            <h3 style="color: #fff;"><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent);"></i> Danger Zone</h3>
-                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Permamently wipe a player's tracking history from the Supabase infrastructure.</p>
-                            
-                            <div class="form-group">
-                                <label>GUID to Erase (Raw or Hashed)</label>
-                                <div class="input-with-icon">
-                                    <input type="text" id="deleteGuid" placeholder="Enter GUID for deletion" autocomplete="off">
-                                    <i class="fa-solid fa-skull"></i>
-                                </div>
+                    <div class="grid-2" style="margin-bottom: 25px;">
+                        <div class="form-group">
+                            <label>Console Region</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="manageRegion" oninput="previewHash('manageRegion', 'hashPreviewRegion')" autocomplete="off">
+                                <i class="fa-solid fa-earth-americas"></i>
                             </div>
-                            <button class="btn-danger" onclick="deletePlayer()" style="width: 100%; margin-top: 15px; padding: 16px;"><i class="fa-solid fa-fire"></i> Purge Record</button>
+                            <div id="hashPreviewRegion" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
                         </div>
-                        
-                        <!-- Account Settings -->
-                        <div class="admin-panel" style="border-top: 4px solid #3b82f6;">
-                            <h3 style="color: #fff;"><i class="fa-solid fa-user-gear" style="color: #3b82f6;"></i> Account Settings</h3>
-                            
-                            <!-- Display Name -->
-                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6;">Set your Discord Username. This will automatically be attached to any reports or appeals you submit from this device.</p>
-                            <div class="form-group" style="margin-bottom: 25px;">
-                                <label>Discord Username / Display Name</label>
-                                <div style="display: flex; gap: 10px;">
-                                    <div class="input-with-icon" style="flex: 1;">
-                                        <input type="text" id="adminDisplayName" placeholder="e.g. OG-BlazeMonkey" autocomplete="off">
-                                        <i class="fa-brands fa-discord"></i>
-                                    </div>
-                                    <button class="btn-primary" onclick="updateAdminProfile()" id="btnUpdateProfile" style="border-radius: 8px; padding: 0 20px; background-color: #3b82f6;"><i class="fa-solid fa-cloud-arrow-up"></i> Save Profile</button>
-                                </div>
+                        <div class="form-group">
+                            <label>Microphone Found</label>
+                            <div class="input-with-icon">
+                                <select id="manageMic">
+                                    <option value="false">False</option>
+                                    <option value="true">True</option>
+                                </select>
+                                <i class="fa-solid fa-microphone"></i>
                             </div>
-
-                            <div style="height: 1px; background-color: rgba(255,255,255,0.08); margin: 25px 0;"></div>
-                            
-                            <!-- Password -->
-                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.6;">Update your administrator password. You will use this new password next time you log in.</p>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>New Password</label>
-                                    <div class="input-with-icon">
-                                        <input type="password" id="adminNewPassword" placeholder="••••••••" autocomplete="new-password">
-                                        <i class="fa-solid fa-key"></i>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Confirm Password</label>
-                                    <div class="input-with-icon">
-                                        <input type="password" id="adminConfirmPassword" placeholder="••••••••" autocomplete="new-password">
-                                        <i class="fa-solid fa-lock"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn-primary" onclick="updateAdminPassword()" id="btnUpdatePassword" style="width: 100%; margin-top: 5px; padding: 16px; background-color: #3b82f6;"><i class="fa-solid fa-floppy-disk"></i> Update Password</button>
                         </div>
                     </div>
+                    
+                    <button class="btn-success" onclick="savePlayer()" style="width: 100%; padding: 16px; font-size: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> Format & Push Update</button>
+                </div>
 
-                    <!-- OVERHAULED Admin Pending Reports Section -->
-                    <div class="admin-panel" style="grid-column: 1 / -1;">
-                        <h3><i class="fa-solid fa-inbox"></i> Pending Player Reports & Appeals</h3>
-                        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 25px;">Review public submissions. Clicking 'Review' will automatically load the reported player into the Update Form above for database cross-referencing.</p>
-                        
-                        <div id="adminReportsContainer" class="reports-grid">
-                            <div class="empty-state" style="grid-column: 1 / -1;"><div class="loader"></div> Fetching pending reports...</div>
-                        </div>
+                <!-- OVERHAULED Admin Pending Reports Section -->
+                <div class="admin-panel" style="grid-column: 1 / -1;">
+                    <h3><i class="fa-solid fa-inbox" style="color: var(--accent);"></i> Pending Player Reports & Appeals</h3>
+                    <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 25px;">Review public submissions. Clicking 'Review Profile' will automatically extract the GUID from the report and push it into the Fetch tool above.</p>
+                    
+                    <div id="adminReportsContainer" class="reports-grid">
+                        <div class="empty-state" style="grid-column: 1 / -1;"><div class="loader"></div> Fetching pending reports...</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- SECURE: ADMIN SETTINGS TAB -->
+        <div id="settingsView" class="view-section">
+            <div class="admin-dashboard single-col">
+                
+                <div class="toolbar" style="margin-bottom: 25px; border-left: 4px solid #3b82f6;">
+                    <div style="font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-shield-check" style="color: #3b82f6; font-size: 18px;"></i> Secure Configuration Mode</div>
+                    <button class="btn-danger" onclick="handleLogout()" style="background: transparent; border-color: rgba(239, 68, 68, 0.3);"><i class="fa-solid fa-power-off"></i> Terminate Session</button>
+                </div>
+
+                <!-- Account Settings -->
+                <div class="admin-panel" style="border-top: 4px solid #3b82f6;">
+                    <h3 style="color: #fff;"><i class="fa-solid fa-user-gear" style="color: #3b82f6;"></i> Account Settings</h3>
+                    
+                    <!-- Display Name -->
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6;">Set your Discord Username. This will automatically be attached to any reports or appeals you submit from this device.</p>
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label>Discord Username / Display Name</label>
+                        <div style="display: flex; gap: 10px;">
+                            <div class="input-with-icon" style="flex: 1;">
+                                <input type="text" id="adminDisplayName" placeholder="e.g. OG-BlazeMonkey" autocomplete="off">
+                                <i class="fa-brands fa-discord"></i>
+                            </div>
+                            <button class="btn-primary" onclick="updateAdminProfile()" id="btnUpdateProfile" style="border-radius: 8px; padding: 0 20px; background-color: #3b82f6;"><i class="fa-solid fa-cloud-arrow-up"></i> Save</button>
+                        </div>
+                    </div>
+
+                    <div style="height: 1px; background-color: rgba(255,255,255,0.08); margin: 25px 0;"></div>
+                    
+                    <!-- Password -->
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.6;">Update your administrator password. You will use this new password next time you log in.</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="adminNewPassword" placeholder="••••••••" autocomplete="new-password">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="adminConfirmPassword" placeholder="••••••••" autocomplete="new-password">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="updateAdminPassword()" id="btnUpdatePassword" style="width: 100%; margin-top: 5px; padding: 16px; background-color: #3b82f6;"><i class="fa-solid fa-floppy-disk"></i> Update Password</button>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="admin-panel" style="border-top: 4px solid var(--accent);">
+                    <h3 style="color: #fff;"><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent);"></i> Danger Zone (Database Purge)</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Permamently wipe a specific player's tracking history from the Supabase infrastructure. This action cannot be undone.</p>
+                    
+                    <div class="form-group">
+                        <label>Target GUID to Erase (Raw or Hashed)</label>
+                        <div class="input-with-icon">
+                            <input type="text" id="deleteGuid" placeholder="Enter GUID for deletion" autocomplete="off">
+                            <i class="fa-solid fa-skull"></i>
+                        </div>
+                    </div>
+                    <button class="btn-danger" onclick="deletePlayer()" style="width: 100%; margin-top: 15px; padding: 16px;"><i class="fa-solid fa-fire"></i> Purge Record</button>
+                </div>
+
             </div>
         </div>
     </div>
@@ -719,19 +728,43 @@
             return hwid;
         }
 
-        // Dynamically assign icons. Custom flags get a generic tag icon.
+        // --- NEW MULTI-FLAG GENERATOR ---
+        function generateBadgesHTML(flagString) {
+            if (!flagString || flagString === "Not Set") {
+                return `<span class="badge bg-Not-Set"><i class="fa-solid fa-circle-question"></i> Not Set</span>`;
+            }
+            
+            // Split the flag string by slashes or commas
+            const flags = flagString.split(/[/,]+/).map(f => f.trim()).filter(f => f);
+            if (flags.length === 0) return `<span class="badge bg-Not-Set"><i class="fa-solid fa-circle-question"></i> Not Set</span>`;
+            
+            const knownFlags = ['BANNED', 'KOS', 'MODDER', 'SUS', 'LEGIT', 'FRIEND', 'NOT-SET', 'ADMIN', 'DEV', 'CREATOR'];
+            
+            return flags.map(flag => {
+                const formatted = flag.replace(/\s+/g, '-');
+                let cssClass = `bg-${formatted}`;
+                
+                if (!knownFlags.includes(formatted.toUpperCase())) {
+                    cssClass = `bg-Custom ${cssClass}`;
+                }
+                
+                const icon = getIconForFlag(flag);
+                return `<span class="badge ${cssClass}" style="margin-right: 4px; margin-bottom: 4px;">${icon} ${flag}</span>`;
+            }).join('');
+        }
+
         function getIconForFlag(flag) {
             const upper = flag.toUpperCase();
-            if (upper.includes('CREATOR')) return '<i class="fa-solid fa-crown" style="color: #e879f9;"></i>';
-            if (upper.includes('ADMIN')) return '<i class="fa-solid fa-shield-halved" style="color: #93c5fd;"></i>';
-            if (upper.includes('DEV')) return '<i class="fa-solid fa-code-commit" style="color: #6ee7b7;"></i>';
-            if (upper.includes('BANNED')) return '<i class="fa-solid fa-ban"></i>';
-            if (upper.includes('KOS')) return '<i class="fa-solid fa-crosshairs"></i>';
-            if (upper.includes('MODDER')) return '<i class="fa-solid fa-code"></i>';
-            if (upper.includes('SUS')) return '<i class="fa-solid fa-user-secret"></i>';
-            if (upper.includes('LEGIT')) return '<i class="fa-solid fa-check-circle"></i>';
-            if (upper.includes('FRIEND')) return '<i class="fa-solid fa-user-group"></i>';
-            if (upper.includes('NOT SET')) return '<i class="fa-solid fa-circle-question"></i>';
+            if (upper === 'CREATOR') return '<i class="fa-solid fa-crown" style="color: #e879f9;"></i>';
+            if (upper === 'ADMIN') return '<i class="fa-solid fa-shield-halved" style="color: #93c5fd;"></i>';
+            if (upper === 'DEV') return '<i class="fa-solid fa-code-commit" style="color: #6ee7b7;"></i>';
+            if (upper === 'BANNED') return '<i class="fa-solid fa-ban"></i>';
+            if (upper === 'KOS') return '<i class="fa-solid fa-crosshairs"></i>';
+            if (upper === 'MODDER') return '<i class="fa-solid fa-code"></i>';
+            if (upper === 'SUS') return '<i class="fa-solid fa-user-secret"></i>';
+            if (upper === 'LEGIT') return '<i class="fa-solid fa-check-circle"></i>';
+            if (upper === 'FRIEND') return '<i class="fa-solid fa-user-group"></i>';
+            if (upper === 'NOT SET') return '<i class="fa-solid fa-circle-question"></i>';
             return '<i class="fa-solid fa-tag"></i>'; 
         }
 
@@ -771,10 +804,16 @@
 
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'admin-nav-item'));
+            
             document.getElementById(tabId).classList.add('active');
-            btnElement.classList.add('active');
-            if (tabId === 'managementView') checkAuth();
+            
+            if (tabId === 'managementView' || tabId === 'settingsView') {
+                btnElement.classList.add('active', 'admin-nav-item');
+                checkAuth(tabId);
+            } else {
+                btnElement.classList.add('active');
+            }
         }
 
         function switchSubTab(viewId, btnElement) {
@@ -936,11 +975,7 @@
             const hiddenName = document.getElementById('appealHiddenName');
 
             if (player) {
-                const flagFormatted = player.Flag.replace(/\s+/g, '-');
-                const cssClass = "bg-Custom bg-" + flagFormatted;
-                const pIcon = getIconForFlag(player.Flag);
-                
-                statusEl.innerHTML = `<span class="badge ${cssClass}">${pIcon} ${player.Flag}</span> &nbsp;<span style="color:var(--text-muted); font-size: 12px; font-weight: 400;">(${player.Username})</span>`;
+                statusEl.innerHTML = `${generateBadgesHTML(player.Flag)} &nbsp;<span style="color:var(--text-muted); font-size: 12px; font-weight: 400;">(${player.Username})</span>`;
                 hiddenGuid.value = player.GUID;
                 hiddenName.value = player.Username !== "Unknown" ? player.Username : "";
                 
@@ -1040,12 +1075,10 @@
                 `;
                 
                 players.forEach(p => {
-                    const cssClass = "bg-Custom bg-" + p.Flag.replace(/\s+/g, '-');
-                    const pIcon = getIconForFlag(p.Flag);
                     html += `
                         <tr>
                             <td style="font-weight: 600; width: 30%; color: #fff;">${p.Username}</td>
-                            <td style="width: 25%;"><span class="badge ${cssClass}">${pIcon} ${p.Flag}</span></td>
+                            <td style="width: 25%;">${generateBadgesHTML(p.Flag)}</td>
                             <td class="guid-font" style="width: 25%;" title="${p.GUID}">${p.GUID.substring(0, 16)}...</td>
                             <td style="width: 20%; color: var(--text-muted); font-size: 13px;">${p.LastMet}</td>
                         </tr>
@@ -1099,12 +1132,10 @@
             }
 
             pageData.forEach(player => {
-                const cssClass = "bg-Custom bg-" + player.Flag.replace(/\s+/g, '-');
-                const icon = getIconForFlag(player.Flag);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td style="font-weight: 600;">${player.Username}</td>
-                    <td><span class="badge ${cssClass}">${icon} ${player.Flag}</span></td>
+                    <td>${generateBadgesHTML(player.Flag)}</td>
                     <td class="guid-font">${player.GUID}</td>
                     <td>${player.LastMet}</td>
                 `;
@@ -1289,8 +1320,9 @@
         }
 
         // --- AUTHENTICATION & DB MANAGEMENT ---
-        async function checkAuth() {
+        async function checkAuth(targetView = 'managementView') {
             const token = localStorage.getItem('supabaseToken');
+            
             if (token) {
                 try {
                     const response = await fetch(`${PROJECT_URL}/auth/v1/user`, {
@@ -1305,19 +1337,46 @@
                         const displayNameInput = document.getElementById('adminDisplayName');
                         if (displayNameInput) displayNameInput.value = dName;
 
-                        document.getElementById('loginContainer').style.display = 'none';
+                        // Un-hide the secure nav buttons
+                        document.getElementById('navManagement').style.display = 'inline-flex';
+                        document.getElementById('navAdminSettings').style.display = 'inline-flex';
+                        document.getElementById('navAdminLogin').style.display = 'none';
+
+                        // Show the target panel (Management by default)
+                        document.getElementById('loginView').classList.remove('active');
                         document.getElementById('managementContainer').style.display = 'block';
+                        
+                        if (targetView === 'settingsView') {
+                            document.getElementById('managementView').classList.remove('active');
+                            document.getElementById('settingsView').classList.add('active');
+                        }
+                        
                         loadReports(); 
                     } else {
                         handleLogout();
                     }
                 } catch(e) {
-                    document.getElementById('loginContainer').style.display = 'none';
+                    // Fallback if offline
+                    document.getElementById('navManagement').style.display = 'inline-flex';
+                    document.getElementById('navAdminSettings').style.display = 'inline-flex';
+                    document.getElementById('navAdminLogin').style.display = 'none';
+                    
+                    document.getElementById('loginView').classList.remove('active');
                     document.getElementById('managementContainer').style.display = 'block';
                 }
             } else {
-                document.getElementById('loginContainer').style.display = 'block';
+                // Not logged in
+                document.getElementById('navManagement').style.display = 'none';
+                document.getElementById('navAdminSettings').style.display = 'none';
+                document.getElementById('navAdminLogin').style.display = 'inline-flex';
+                
+                document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+                document.getElementById('loginView').classList.add('active');
                 document.getElementById('managementContainer').style.display = 'none';
+                
+                // Update nav bar active state
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('navAdminLogin').classList.add('active');
             }
         }
 
@@ -1346,8 +1405,16 @@
 
                     document.getElementById('loginEmail').value = "";
                     document.getElementById('loginPassword').value = "";
+                    
                     showToast("Authentication confirmed.", "success");
-                    checkAuth();
+                    
+                    // Force UI update to Management tab
+                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    const managementBtn = document.getElementById('navManagement');
+                    managementBtn.classList.add('active', 'admin-nav-item');
+                    document.getElementById('managementView').classList.add('active');
+                    
+                    checkAuth('managementView');
                 } else {
                     showToast(data.error_description || "Invalid credentials.", "error");
                 }
@@ -1360,6 +1427,14 @@
             localStorage.removeItem('supabaseToken');
             localStorage.removeItem('adminDiscord');
             showToast("Session terminated.", "info");
+            
+            // Force reset back to Database Index tab
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'admin-nav-item'));
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            
+            document.querySelector('.tab-container button:first-child').classList.add('active');
+            document.getElementById('dbView').classList.add('active');
+            
             checkAuth();
         }
 
@@ -1392,7 +1467,7 @@
                 showToast("Network error.", "error");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Save Profile';
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Save';
             }
         }
         
@@ -1545,6 +1620,14 @@
         function processReport(guid) {
             document.getElementById('manageGuid').value = guid;
             previewHash('manageGuid', 'hashPreviewGuid');
+            
+            // Switch tabs gracefully if they triggered this from the settings view
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('managementView').classList.add('active');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'admin-nav-item'));
+            document.getElementById('navManagement').classList.add('active', 'admin-nav-item');
+
             pullPlayerData();
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
@@ -1742,6 +1825,14 @@
             }
         }
 
+        // Check authentication silently on load
+        const token = localStorage.getItem('supabaseToken');
+        if (token) {
+            document.getElementById('navManagement').style.display = 'inline-flex';
+            document.getElementById('navAdminSettings').style.display = 'inline-flex';
+            document.getElementById('navAdminLogin').style.display = 'none';
+        }
+        
         // Initialize Engine
         loadPlayers();
     </script>
