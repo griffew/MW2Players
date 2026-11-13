@@ -13,16 +13,16 @@
     <style>
         :root {
             --bg-base: #09090b;
-            --bg-panel: #18181b;
-            --bg-hover: #27272a;
+            --bg-panel: rgba(24, 24, 27, 0.6);
+            --bg-hover: rgba(39, 39, 42, 0.8);
             --accent: #ef4444;
             --accent-glow: rgba(239, 68, 68, 0.4);
             --accent-hover: #dc2626;
             --text-main: #f8fafc;
             --text-muted: #a1a1aa;
-            --border: #3f3f46;
-            --radius: 10px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --border: rgba(63, 63, 70, 0.6);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,104 +33,177 @@
             color: var(--text-main); 
             padding: 20px; 
             line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Ambient Background Glow */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100vh;
+            background: radial-gradient(circle at 50% -20%, rgba(239, 68, 68, 0.08) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #71717a; }
 
         .container { max-width: 1300px; margin: 0 auto; }
 
-        .header { margin-bottom: 30px; text-align: center; }
-        .header h1 { font-size: 32px; font-weight: 700; color: #fff; letter-spacing: -0.5px; text-shadow: 0 0 15px rgba(255,255,255,0.1); }
-        .header p { color: var(--text-muted); font-size: 15px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
+        .header { margin-bottom: 40px; text-align: center; }
+        .header h1 { font-size: 36px; font-weight: 700; color: #fff; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(255,255,255,0.15); margin-bottom: 8px; }
+        .header p { color: var(--text-muted); font-size: 15px; font-family: 'JetBrains Mono', monospace; }
 
-        /* Navigation Tabs */
-        .tab-container { display: flex; gap: 5px; margin-bottom: 25px; border-bottom: 1px solid var(--border); overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
-        .tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 14px 24px; font-size: 14px; cursor: pointer; font-weight: 600; transition: var(--transition); position: relative; border-radius: var(--radius) var(--radius) 0 0; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-        .tab-btn:hover { color: var(--text-main); background-color: rgba(255,255,255,0.03); }
-        .tab-btn.active { color: var(--accent); background-color: rgba(239, 68, 68, 0.05); }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background-color: var(--accent); border-radius: 2px 2px 0 0; box-shadow: 0 -2px 10px var(--accent-glow); }
+        /* Floating Pill Navigation Tabs */
+        .tab-wrapper { display: flex; justify-content: center; margin-bottom: 35px; }
+        .tab-container { 
+            display: inline-flex; 
+            background: rgba(0,0,0,0.4); 
+            padding: 6px; 
+            border-radius: 14px; 
+            border: 1px solid var(--border); 
+            gap: 5px; 
+            overflow-x: auto; 
+            max-width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            -webkit-overflow-scrolling: touch; 
+        }
+        .tab-btn { 
+            background: transparent; 
+            color: var(--text-muted); 
+            border: none; 
+            padding: 12px 24px; 
+            font-size: 14px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: var(--transition); 
+            border-radius: 10px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            white-space: nowrap; 
+        }
+        .tab-btn:hover { color: var(--text-main); background-color: rgba(255,255,255,0.05); }
+        .tab-btn.active { color: #fff; background-color: var(--accent); box-shadow: 0 4px 15px var(--accent-glow); }
 
         /* View Sections */
-        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
-        .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .view-section { display: none; animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(15px); }
+        .view-section.active { display: block; opacity: 1; transform: translateY(0); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+        /* Sub-Tabs for Network Matches */
+        .sub-tab-wrapper { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0; }
+        .sub-tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 12px 20px; font-size: 14px; cursor: pointer; font-weight: 600; transition: var(--transition); border-bottom: 2px solid transparent; margin-bottom: -1px; display: flex; align-items: center; gap: 8px; }
+        .sub-tab-btn:hover { color: var(--text-main); }
+        .sub-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        
+        .sub-view-section { display: none; animation: fadeIn 0.3s ease-out forwards; }
+        .sub-view-section.active { display: block; }
 
         /* Stats Dashboard */
-        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: var(--transition); }
-        .stat-card:hover { transform: translateY(-2px); border-color: #52525b; }
-        .stat-value { font-size: 28px; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace; margin-bottom: 5px; }
-        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px 20px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.15); backdrop-filter: blur(10px); transition: var(--transition); }
+        .stat-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.1); background-color: rgba(39, 39, 42, 0.7); }
+        .stat-value { font-size: 32px; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
 
         /* Forms & Controls */
-        .toolbar { display: flex; flex-wrap: wrap; gap: 15px; background-color: var(--bg-panel); padding: 20px; border-radius: var(--radius); margin-bottom: 20px; align-items: center; border: 1px solid var(--border); box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2); justify-content: space-between; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 15px; background-color: var(--bg-panel); padding: 20px; border-radius: var(--radius); margin-bottom: 20px; align-items: center; border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); backdrop-filter: blur(10px); justify-content: space-between; }
         .toolbar-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         
         .form-group { display: flex; flex-direction: column; width: 100%; gap: 8px; margin-bottom: 15px; }
         .form-group label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
         
         .input-with-icon { position: relative; display: flex; align-items: center; width: 100%; }
-        .input-with-icon i { position: absolute; left: 14px; color: var(--text-muted); font-size: 14px; transition: color 0.2s; z-index: 2; }
+        .input-with-icon i { position: absolute; left: 16px; color: var(--text-muted); font-size: 14px; transition: color 0.2s; z-index: 2; }
         .input-with-icon input:focus + i, .input-with-icon select:focus + i { color: var(--accent); }
-        .input-with-icon input, .input-with-icon select { padding-left: 40px; position: relative; z-index: 1; }
+        .input-with-icon input, .input-with-icon select { padding-left: 42px; position: relative; z-index: 1; }
 
-        input, select { padding: 12px 16px; background-color: rgba(0,0,0,0.2); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: var(--transition); width: 100%; }
-        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); }
+        input, select { padding: 14px 16px; background-color: rgba(0,0,0,0.3); color: var(--text-main); border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: var(--transition); width: 100%; }
+        input:focus, select:focus { border-color: var(--accent); background-color: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); }
         
-        button { padding: 12px 20px; background-color: var(--bg-hover); color: var(--text-main); border: 1px solid var(--border); cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 14px; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; }
-        button:hover:not(:disabled) { background-color: #3f3f46; transform: translateY(-1px); }
+        button { padding: 14px 22px; background-color: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border); cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 14px; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button:hover:not(:disabled) { background-color: rgba(255,255,255,0.1); transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
         button:active:not(:disabled) { transform: translateY(0); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .btn-primary { background-color: var(--accent); color: white; border: none; }
-        .btn-primary:hover:not(:disabled) { background-color: var(--accent-hover); box-shadow: 0 4px 12px var(--accent-glow); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--accent-hover); box-shadow: 0 6px 16px var(--accent-glow); border: none; }
         
         .btn-success { background-color: #10b981; color: white; border: none; }
-        .btn-success:hover:not(:disabled) { background-color: #059669; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+        .btn-success:hover:not(:disabled) { background-color: #059669; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); border: none; }
 
-        .btn-danger { background-color: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; }
-        .btn-danger:hover:not(:disabled) { background-color: #ef4444; color: #fff; box-shadow: 0 4px 12px var(--accent-glow); }
+        .btn-danger { background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.5); color: #fca5a5; }
+        .btn-danger:hover:not(:disabled) { background-color: #ef4444; color: #fff; box-shadow: 0 6px 16px var(--accent-glow); border-color: #ef4444; }
 
         /* Search Bar Setup */
         .search-container { display: flex; flex: 1; min-width: 250px; position: relative; }
-        .search-container i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-        .search-container input { padding-left: 40px; }
+        .search-container i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); transition: color 0.2s; }
+        .search-container input { padding-left: 44px; }
+        .search-container input:focus ~ i { color: var(--accent); }
 
         /* Table Styles */
-        .table-container { background-color: var(--bg-panel); border-radius: var(--radius); border: 1px solid var(--border); overflow: auto; max-height: 650px; box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2); }
+        .table-container { background-color: var(--bg-panel); border-radius: var(--radius); border: 1px solid var(--border); overflow: auto; max-height: 650px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); backdrop-filter: blur(10px); }
         table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
-        th { background-color: rgba(0,0,0,0.3); padding: 16px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
-        td { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #d4d4d8; }
-        tr:hover td { background-color: rgba(255,255,255,0.02); color: #fff; }
+        th { background-color: rgba(0,0,0,0.4); padding: 18px 20px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.08); }
+        td { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 14px; color: #d4d4d8; transition: background-color 0.2s; }
+        tr:hover td { background-color: rgba(255,255,255,0.03); color: #fff; }
         tr:last-child td { border-bottom: none; }
         .guid-font { font-family: 'JetBrains Mono', monospace; color: #a1a1aa; font-size: 13px; }
         
-        .ip-header { background-color: #09090b !important; color: #fbbf24 !important; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; border-top: 2px solid var(--border); }
+        /* Match Cluster UI */
+        .cluster-container { display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; background: var(--bg-panel); border: 1px dashed var(--border); border-radius: var(--radius); }
+        
+        .match-cluster { background-color: var(--bg-panel); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.2); backdrop-filter: blur(10px); transition: transform 0.2s; }
+        .match-cluster:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .cluster-header { background: linear-gradient(90deg, rgba(239, 68, 68, 0.12) 0%, transparent 100%); padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 12px; font-weight: 600; color: #fff; font-size: 15px; }
+        .cluster-header i { color: var(--accent); font-size: 16px; }
+        .cluster-badge { margin-left: auto; background: rgba(0,0,0,0.4); padding: 6px 14px; border-radius: 20px; font-size: 12px; color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; letter-spacing: 0.5px; }
+        .cluster-body { padding: 0; }
+        .cluster-table { width: 100%; border-collapse: collapse; }
+        .cluster-table td { padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 14px; }
+        .cluster-table tr:hover td { background-color: rgba(255,255,255,0.02); }
+        .cluster-table tr:last-child td { border-bottom: none; }
 
-        /* Pill Badges for Flags */
-        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .bg-SUS { background-color: rgba(245, 158, 11, 0.15); color: #fbd38d; border: 1px solid rgba(245, 158, 11, 0.4); }
+        /* Admin Management Grid */
+        .admin-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .admin-panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 35px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); backdrop-filter: blur(10px); }
+        .admin-panel h3 { margin-bottom: 25px; font-size: 18px; display: flex; align-items: center; gap: 10px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px; }
+        
+        /* OVERHAULED REPORT CARDS */
+        .reports-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-height: 600px; overflow-y: auto; padding-right: 5px; }
+        .report-card { background-color: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: var(--transition); display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .report-card:hover { border-color: rgba(255,255,255,0.15); background-color: rgba(0,0,0,0.6); transform: translateY(-3px); }
+        .report-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
+        .report-title { font-weight: 700; color: #fff; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .report-time { font-size: 11px; color: var(--text-muted); text-align: right; }
+        .report-detail { font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+        .report-detail-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
+        .report-reason-badge { display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.12); color: #fca5a5; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: 1px solid rgba(239, 68, 68, 0.3); width: fit-content; }
+        .report-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .auth-card { max-width: 480px; margin: 60px auto; text-align: center; }
+
+        /* Pill Badges for Flags (Table) */
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .bg-SUS { background-color: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
         .bg-Modder { background-color: rgba(234, 88, 12, 0.15); color: #fdba74; border: 1px solid rgba(234, 88, 12, 0.4); }
-        .bg-KOS { background-color: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.4); }
+        .bg-KOS { background-color: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.5); }
         .bg-Banned { background-color: rgba(219, 39, 119, 0.15); color: #f9a8d4; border: 1px solid rgba(219, 39, 119, 0.4); }
         .bg-Legit { background-color: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
         .bg-Friend { background-color: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.4); }
         .bg-Not-Set { background-color: rgba(161, 161, 170, 0.15); color: #d4d4d8; border: 1px solid rgba(161, 161, 170, 0.4); }
 
-        /* Admin Management Grid */
-        .admin-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .admin-panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .admin-panel h3 { margin-bottom: 25px; font-size: 18px; display: flex; align-items: center; gap: 10px; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .auth-card { max-width: 450px; margin: 60px auto; text-align: center; }
-
         /* Toast Notifications */
-        #toast { visibility: hidden; min-width: 250px; background-color: #27272a; color: #fff; text-align: center; border-radius: 8px; padding: 16px 24px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(20px); font-size: 14px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.5); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border); }
+        #toast { visibility: hidden; min-width: 280px; background-color: rgba(24, 24, 27, 0.95); color: #fff; text-align: center; border-radius: 10px; padding: 18px 24px; position: fixed; z-index: 1000; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(20px); font-size: 14px; font-weight: 600; box-shadow: 0 15px 35px rgba(0,0,0,0.5); opacity: 0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
         #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         #toast.success { border-left: 4px solid #10b981; }
         #toast.error { border-left: 4px solid #ef4444; }
@@ -143,15 +216,18 @@
         /* Mobile Responsiveness Updates */
         @media (max-width: 850px) {
             .admin-dashboard { grid-template-columns: 1fr; }
-            .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 12px; }
             .toolbar { flex-direction: column; align-items: stretch; }
-            .toolbar-group { flex-direction: column; align-items: stretch; width: 100%; gap: 10px; }
+            .toolbar-group { flex-direction: column; align-items: stretch; width: 100%; gap: 12px; }
             .toolbar-group > * { width: 100% !important; margin-bottom: 5px; }
             .toolbar-group .search-container { width: 100%; }
-            .header h1 { font-size: 26px; }
+            .header h1 { font-size: 28px; }
             .tab-btn { font-size: 13px; padding: 12px 16px; }
-            .admin-panel { padding: 20px; }
-            body { padding: 10px; }
+            .admin-panel { padding: 25px; }
+            body { padding: 15px; }
+            .tab-wrapper { justify-content: flex-start; }
+            .sub-tab-wrapper { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+            .reports-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -160,15 +236,17 @@
     <div class="container">
         <div class="header">
             <h1>Player Database</h1>
-            <p><i class="fa-solid fa-server" style="margin-right: 5px;"></i> Public Player Tracking Database</p>
+            <p><i class="fa-solid fa-server" style="margin-right: 8px; color: var(--accent);"></i> Public Player Tracking Database</p>
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="tab-container">
-            <button class="tab-btn active" onclick="switchTab('dbView', this)"><i class="fa-solid fa-database"></i> Database Index</button>
-            <button class="tab-btn" onclick="switchTab('ipView', this)"><i class="fa-solid fa-network-wired"></i> Network Matches (Alt Accounts)</button>
-            <button class="tab-btn" onclick="switchTab('reportView', this)"><i class="fa-solid fa-flag"></i> Report Player</button>
-            <button class="tab-btn" onclick="switchTab('managementView', this)"><i class="fa-solid fa-shield-halved"></i> Management</button>
+        <div class="tab-wrapper">
+            <div class="tab-container">
+                <button class="tab-btn active" onclick="switchTab('dbView', this)"><i class="fa-solid fa-database"></i> Database Index</button>
+                <button class="tab-btn" onclick="switchTab('ipView', this)"><i class="fa-solid fa-network-wired"></i> Network Matches</button>
+                <button class="tab-btn" onclick="switchTab('reportView', this)"><i class="fa-solid fa-flag"></i> Report Player</button>
+                <button class="tab-btn" onclick="switchTab('managementView', this)"><i class="fa-solid fa-shield-halved"></i> Management</button>
+            </div>
         </div>
 
         <!-- TAB 1: DATABASE -->
@@ -197,17 +275,15 @@
             <!-- Search Bar -->
             <div class="toolbar">
                 <div class="toolbar-group" style="flex: 1;">
-                    <select id="searchType" style="width: 180px;">
+                    <select id="searchType" style="width: 200px;">
                         <option value="name">Username</option>
                         <option value="guid_hash">Hashed GUID</option>
                         <option value="guid_raw">Raw GUID Format</option>
                         <option value="status">Status Flag</option>
-                        <option value="ip_hash">Hashed IP Address</option>
-                        <option value="ip_raw">Raw IP Address</option>
                     </select>
                     <div class="search-container">
                         <i class="fa-solid fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Type to filter anywhere within the selected column..." oninput="debounceSearch()" autocomplete="off" spellcheck="false" name="db_search_input">
+                        <input type="text" id="searchInput" placeholder="Search database index..." oninput="debounceSearch()" autocomplete="off" spellcheck="false" name="db_search_input">
                     </div>
                 </div>
                 <div class="toolbar-group">
@@ -220,7 +296,7 @@
             <div class="toolbar" style="padding: 15px 20px;">
                 <div class="toolbar-group">
                     <label for="sortSelect" style="font-size: 13px; color: var(--text-muted);"><i class="fa-solid fa-sort"></i> Sort Index:</label>
-                    <select id="sortSelect" onchange="sortData()" style="width: 220px; padding: 10px;">
+                    <select id="sortSelect" onchange="sortData()" style="width: 240px; padding: 10px;">
                         <option value="lastmet_desc">Last Met (Newest First)</option>
                         <option value="lastmet_asc">Last Met (Oldest First)</option>
                         <option value="username_asc">Username (A - Z)</option>
@@ -233,15 +309,15 @@
                 
                 <div class="toolbar-group">
                     <label style="font-size: 13px; color: var(--text-muted);">Rows:</label>
-                    <select id="pageSize" onchange="changePageSize()" style="width: 80px; padding: 10px;">
+                    <select id="pageSize" onchange="changePageSize()" style="width: 90px; padding: 10px;">
                         <option value="50">50</option>
                         <option value="100" selected>100</option>
                         <option value="500">500</option>
                         <option value="1000">1000</option>
                     </select>
-                    <div style="width: 1px; height: 20px; background-color: var(--border); margin: 0 10px;" class="desktop-only"></div>
+                    <div style="width: 1px; height: 24px; background-color: var(--border); margin: 0 10px;" class="desktop-only"></div>
                     <button id="prevBtn" onclick="changePage(-1)" disabled><i class="fa-solid fa-chevron-left"></i> Prev</button>
-                    <span id="pageIndicator" style="font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono'; margin: 0 10px; text-align: center;">Loading...</span>
+                    <span id="pageIndicator" style="font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono'; margin: 0 12px; text-align: center;">Loading...</span>
                     <button id="nextBtn" onclick="changePage(1)" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
@@ -265,50 +341,33 @@
 
         <!-- TAB 2: SHARED IPs -->
         <div id="ipView" class="view-section">
-            <div class="toolbar">
-                <p style="font-size: 14px; color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> Network Intelligence isolates identical hardware matches (exact external & local IP) separately from household matches (shared external IP).</p>
+            <div class="toolbar" style="border-left: 4px solid var(--accent); margin-bottom: 25px;">
+                <p style="font-size: 14px; color: var(--text-muted);"><i class="fa-solid fa-circle-info" style="color: var(--accent); margin-right: 5px;"></i> <b>Network Intelligence</b> isolates identical hardware matches (exact external & local IP) separately from household matches (shared external IP).</p>
             </div>
             
-            <h3 style="color: #fff; margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fa-solid fa-microchip"></i> Hardware Matches (Identical External & Local IP Hashes)</h3>
-            <div class="table-container" style="margin-bottom: 40px; max-height: 350px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">GamerTag</th>
-                            <th style="width: 15%;">Classification</th>
-                            <th style="width: 35%;">GUID (Hashed)</th>
-                            <th style="width: 25%;">Last Encounter</th>
-                        </tr>
-                    </thead>
-                    <tbody id="hardwareTableBody">
-                        <tr><td colspan="4" style="text-align: center; padding: 40px;">Analyzing hardware data...</td></tr>
-                    </tbody>
-                </table>
+            <div class="sub-tab-wrapper">
+                <button class="sub-tab-btn active" onclick="switchSubTab('hardwareMatchesView', this)"><i class="fa-solid fa-microchip"></i> Hardware Matches</button>
+                <button class="sub-tab-btn" onclick="switchSubTab('householdMatchesView', this)"><i class="fa-solid fa-house-signal"></i> Household Matches</button>
             </div>
 
-            <h3 style="color: #fff; margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fa-solid fa-house-signal"></i> Household Matches (Identical External IP Hashes)</h3>
-            <div class="table-container" style="max-height: 350px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">GamerTag</th>
-                            <th style="width: 15%;">Classification</th>
-                            <th style="width: 35%;">GUID (Hashed)</th>
-                            <th style="width: 25%;">Last Encounter</th>
-                        </tr>
-                    </thead>
-                    <tbody id="householdTableBody">
-                        <tr><td colspan="4" style="text-align: center; padding: 40px;">Analyzing household data...</td></tr>
-                    </tbody>
-                </table>
+            <div id="hardwareMatchesView" class="sub-view-section active">
+                <div id="hardwareClusters" class="cluster-container">
+                    <div class="empty-state"><div class="loader"></div> Analyzing hardware data...</div>
+                </div>
+            </div>
+
+            <div id="householdMatchesView" class="sub-view-section">
+                <div id="householdClusters" class="cluster-container">
+                    <div class="empty-state"><div class="loader"></div> Analyzing household data...</div>
+                </div>
             </div>
         </div>
 
-        <!-- TAB 3: REPORT HACKER (PUBLIC SUBMISSION) -->
+        <!-- TAB 3: REPORT HACKER -->
         <div id="reportView" class="view-section">
-            <div class="admin-panel" style="max-width: 650px; margin: 0 auto;">
-                <h3 style="color: #ef4444;"><i class="fa-solid fa-flag"></i> Submit Player Report</h3>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Help keep the community clean. Submitted reports are sent directly to the backend for manual administrative review.</p>
+            <div class="admin-panel" style="max-width: 650px; margin: 0 auto; border-top: 4px solid var(--accent);">
+                <h3 style="color: #fff;"><i class="fa-solid fa-flag" style="color: var(--accent);"></i> Submit Player Report</h3>
+                <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Help keep the community clean. Submitted reports are sent directly to the backend for manual administrative review.</p>
                 
                 <div class="grid-2">
                     <div class="form-group">
@@ -350,16 +409,16 @@
                     </div>
                 </div>
                 
-                <button class="btn-primary" onclick="submitReport()" id="btnSubmitReport" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 15px;"><i class="fa-solid fa-paper-plane"></i> Transmit Report</button>
+                <button class="btn-primary" onclick="submitReport()" id="btnSubmitReport" style="width: 100%; margin-top: 15px; padding: 16px; font-size: 15px;"><i class="fa-solid fa-paper-plane"></i> Transmit Report</button>
             </div>
         </div>
 
         <!-- TAB 4: ADMIN MANAGEMENT -->
         <div id="managementView" class="view-section">
             <!-- Login -->
-            <div id="loginContainer" class="admin-panel auth-card">
-                <h3 style="justify-content: center; border: none; font-size: 22px;"><i class="fa-solid fa-user-lock"></i> System Authentication</h3>
-                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Enter your admin credentials to access database modification tools.</p>
+            <div id="loginContainer" class="admin-panel auth-card" style="border-top: 4px solid #3b82f6;">
+                <h3 style="justify-content: center; border: none; font-size: 24px;"><i class="fa-solid fa-user-lock" style="color: #3b82f6;"></i> System Authentication</h3>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 30px;">Enter your admin credentials to access database modification tools.</p>
                 <div class="form-group">
                     <div class="input-with-icon">
                         <input type="text" id="loginEmail" placeholder="Administrator Username" autocomplete="username">
@@ -372,21 +431,21 @@
                         <i class="fa-solid fa-key"></i>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="handleLogin()" style="width: 100%; margin-top: 10px; padding: 14px;"><i class="fa-solid fa-right-to-bracket"></i> Authenticate</button>
+                <button class="btn-primary" onclick="handleLogin()" style="width: 100%; margin-top: 15px; padding: 16px; background-color: #3b82f6;"><i class="fa-solid fa-right-to-bracket"></i> Authenticate</button>
             </div>
 
             <!-- Management Dashboard -->
             <div id="managementContainer" style="display: none;">
-                <div class="toolbar" style="margin-bottom: 20px;">
-                    <div style="font-weight: 600; font-size: 15px;"><i class="fa-solid fa-shield-check" style="color: #10b981;"></i> Secure Session Active</div>
+                <div class="toolbar" style="margin-bottom: 25px;">
+                    <div style="font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-shield-check" style="color: #10b981; font-size: 18px;"></i> Secure Session Active</div>
                     <button onclick="handleLogout()"><i class="fa-solid fa-power-off"></i> Terminate Session</button>
                 </div>
 
                 <div class="admin-dashboard">
                     <!-- Left Column: Update Record -->
-                    <div class="admin-panel">
-                        <h3><i class="fa-solid fa-pen-to-square"></i> Update Existing Record</h3>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">Search by GamerTag or enter the target's GUID (Raw or Hashed) and click <b>Fetch Profile</b> to load their current tracking data. Privacy-hashed network data will remain unmodified unless overridden.</p>
+                    <div class="admin-panel" style="border-top: 4px solid #10b981;">
+                        <h3><i class="fa-solid fa-pen-to-square" style="color: #10b981;"></i> Update Existing Record</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Search by GamerTag or enter the target's GUID (Raw or Hashed) and click <b>Fetch Profile</b> to load their current tracking data. Privacy-hashed network data will remain unmodified unless overridden.</p>
                         
                         <div class="grid-2">
                             <div class="form-group">
@@ -395,7 +454,7 @@
                                     <input type="text" id="searchUsername" list="playerNamesList" placeholder="Search Database..." onchange="handleNameSelect()" autocomplete="off">
                                     <i class="fa-solid fa-users"></i>
                                 </div>
-                                <!-- Datalist for fast searches -->
+                                <datalist id="playerNamesList"></datalist>
                             </div>
 
                             <div class="form-group">
@@ -405,14 +464,14 @@
                                         <input type="text" id="manageGuid" placeholder="e.g. 3e02... or MD5" oninput="previewHash('manageGuid', 'hashPreviewGuid')" autocomplete="off">
                                         <i class="fa-solid fa-fingerprint"></i>
                                     </div>
-                                    <button class="btn-primary" onclick="pullPlayerData()" style="border-radius: 6px;"><i class="fa-solid fa-cloud-arrow-down"></i> Fetch</button>
+                                    <button class="btn-primary" onclick="pullPlayerData()" style="border-radius: 8px; padding: 0 20px;"><i class="fa-solid fa-cloud-arrow-down"></i> Fetch</button>
                                 </div>
-                                <div id="hashPreviewGuid" style="font-size: 12px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> Target Hash: <span></span></div>
+                                <div id="hashPreviewGuid" style="font-size: 12px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> Target Hash: <span></span></div>
                             </div>
                         </div>
 
                         <!-- Update Fields (Hidden until Fetched) -->
-                        <div id="updateFields" style="display: none; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border);">
+                        <div id="updateFields" style="display: none; margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.08);">
                             <div class="grid-2">
                                 <div class="form-group">
                                     <label>GamerTag (Required)</label>
@@ -445,7 +504,7 @@
                                         <input type="text" id="manageIp" oninput="previewHash('manageIp', 'hashPreviewExIp')" autocomplete="off">
                                         <i class="fa-solid fa-globe"></i>
                                     </div>
-                                    <div id="hashPreviewExIp" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
+                                    <div id="hashPreviewExIp" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
                                 </div>
                                 <div class="form-group">
                                     <label>Local IP (Raw Input)</label>
@@ -453,7 +512,7 @@
                                         <input type="text" id="manageLocalIp" oninput="previewHash('manageLocalIp', 'hashPreviewInIp')" autocomplete="off">
                                         <i class="fa-solid fa-network-wired"></i>
                                     </div>
-                                    <div id="hashPreviewInIp" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
+                                    <div id="hashPreviewInIp" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
                                 </div>
                             </div>
 
@@ -464,7 +523,7 @@
                                         <input type="text" id="manageRegion" oninput="previewHash('manageRegion', 'hashPreviewRegion')" autocomplete="off">
                                         <i class="fa-solid fa-earth-americas"></i>
                                     </div>
-                                    <div id="hashPreviewRegion" style="font-size: 11px; color: #10b981; margin-top: 6px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 5px;"></i> New MD5: <span></span></div>
+                                    <div id="hashPreviewRegion" style="font-size: 11px; color: #10b981; margin-top: 8px; display: none; font-family: 'JetBrains Mono', monospace;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90" style="margin-right: 6px;"></i> New MD5: <span></span></div>
                                 </div>
                                 <div class="form-group">
                                     <label>Microphone Found</label>
@@ -478,14 +537,14 @@
                                 </div>
                             </div>
                             
-                            <button class="btn-success" onclick="savePlayer()" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> Format & Push Update</button>
+                            <button class="btn-success" onclick="savePlayer()" style="width: 100%; margin-top: 20px; padding: 16px; font-size: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> Format & Push Update</button>
                         </div>
                     </div>
 
                     <!-- Right Column: Danger Zone -->
-                    <div class="admin-panel" style="border-color: rgba(239, 68, 68, 0.3);">
-                        <h3 style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h3>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Permamently wipe a player's tracking history from the Supabase infrastructure.</p>
+                    <div class="admin-panel" style="border-top: 4px solid var(--accent);">
+                        <h3 style="color: #fff;"><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent);"></i> Danger Zone</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Permamently wipe a player's tracking history from the Supabase infrastructure.</p>
                         
                         <div class="form-group">
                             <label>GUID to Erase (Raw or Hashed)</label>
@@ -494,31 +553,17 @@
                                 <i class="fa-solid fa-skull"></i>
                             </div>
                         </div>
-                        <button class="btn-danger" onclick="deletePlayer()" style="width: 100%; margin-top: 10px; padding: 14px;"><i class="fa-solid fa-fire"></i> Purge Record</button>
+                        <button class="btn-danger" onclick="deletePlayer()" style="width: 100%; margin-top: 15px; padding: 16px;"><i class="fa-solid fa-fire"></i> Purge Record</button>
                     </div>
                 </div>
 
-                <!-- Admin Pending Reports Section -->
-                <div class="admin-panel">
+                <!-- OVERHAULED Admin Pending Reports Section -->
+                <div class="admin-panel" style="grid-column: 1 / -1;">
                     <h3><i class="fa-solid fa-inbox"></i> Pending Player Reports</h3>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Review public submissions. Clicking 'Review' will automatically load the reported player into the Update Form above for database cross-referencing.</p>
+                    <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 25px;">Review public submissions. Clicking 'Review' will automatically load the reported player into the Update Form above for database cross-referencing.</p>
                     
-                    <div class="table-container" style="max-height: 400px;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 15%;">Reported At</th>
-                                    <th style="width: 25%;">Target Data</th>
-                                    <th style="width: 20%;">Offense Reason</th>
-                                    <th style="width: 15%;">Submitter HWID</th>
-                                    <th style="width: 15%;">Evidence</th>
-                                    <th style="width: 10%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminReportsBody">
-                                <tr><td colspan="6" style="text-align: center; padding: 40px;">Fetching pending reports...</td></tr>
-                            </tbody>
-                        </table>
+                    <div id="adminReportsContainer" class="reports-grid">
+                        <div class="empty-state" style="grid-column: 1 / -1;"><div class="loader"></div> Fetching pending reports...</div>
                     </div>
                 </div>
             </div>
@@ -526,7 +571,7 @@
     </div>
 
     <!-- Toast Notification Element -->
-    <div id="toast"><i class="fa-solid fa-bell"></i> <span style="margin-left: 8px;">Notification</span></div>
+    <div id="toast"><i class="fa-solid fa-bell"></i> <span style="margin-left: 10px;">Notification</span></div>
 
     <script>
         // Supabase Configuration
@@ -543,7 +588,7 @@
         let itemsPerPage = 100;
         let searchTimeout = null;
 
-        // Device HWID Generator (Browser Fingerprint for abuse tracking)
+        // Device HWID Generator
         function getDeviceHWID() {
             let hwid = localStorage.getItem('reporter_hwid');
             if (!hwid) {
@@ -605,6 +650,13 @@
             document.getElementById(tabId).classList.add('active');
             btnElement.classList.add('active');
             if (tabId === 'managementView') checkAuth();
+        }
+
+        function switchSubTab(viewId, btnElement) {
+            document.querySelectorAll('.sub-view-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            btnElement.classList.add('active');
         }
 
         function updateStatistics() {
@@ -675,7 +727,7 @@
                         householdGroups[pData.IP].push(pData);
 
                         if (pData.LocalIP && pData.LocalIP !== "0.0.0.0" && pData.LocalIP !== "Unknown") {
-                            const hwKey = `${pData.IP} &bull; Local: ${pData.LocalIP}`;
+                            const hwKey = `${pData.IP}_${pData.LocalIP}`;
                             if (!hardwareGroups[hwKey]) hardwareGroups[hwKey] = [];
                             hardwareGroups[hwKey].push(pData);
                         }
@@ -739,48 +791,61 @@
             }
         }
 
-        function appendPlayerRow(tbody, p) {
-            const cssClass = "bg-" + p.Flag.replace(/\s+/g, '-');
-            const icon = getIconForFlag(p.Flag);
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td style="padding-left: 30px; border-left: 2px solid var(--border); font-weight: 500;">${p.Username}</td>
-                <td><span class="badge ${cssClass}">${icon} ${p.Flag}</span></td>
-                <td class="guid-font" style="font-size: 11px;" title="${p.GUID}">${p.GUID.substring(0, 16)}...</td>
-                <td>${p.LastMet}</td>
-            `;
-            tbody.appendChild(row);
-        }
-
         function renderSharedIPs() {
-            const hwBody = document.getElementById('hardwareTableBody');
-            const hhBody = document.getElementById('householdTableBody');
-            hwBody.innerHTML = ""; 
-            hhBody.innerHTML = ""; 
+            const hwContainer = document.getElementById('hardwareClusters');
+            const hhContainer = document.getElementById('householdClusters');
+            hwContainer.innerHTML = ""; 
+            hhContainer.innerHTML = ""; 
+
+            function createClusterCard(title, icon, players) {
+                const card = document.createElement('div');
+                card.className = 'match-cluster';
+                
+                let html = `
+                    <div class="cluster-header">
+                        <i class="fa-solid ${icon}"></i> <span>${title}</span>
+                        <span class="cluster-badge">${players.length} Linked Profiles</span>
+                    </div>
+                    <div class="cluster-body">
+                        <table class="cluster-table">
+                            <tbody>
+                `;
+                
+                players.forEach(p => {
+                    const cssClass = "bg-" + p.Flag.replace(/\s+/g, '-');
+                    const pIcon = getIconForFlag(p.Flag);
+                    html += `
+                        <tr>
+                            <td style="font-weight: 600; width: 30%; color: #fff;">${p.Username}</td>
+                            <td style="width: 25%;"><span class="badge ${cssClass}">${pIcon} ${p.Flag}</span></td>
+                            <td class="guid-font" style="width: 25%;" title="${p.GUID}">${p.GUID.substring(0, 16)}...</td>
+                            <td style="width: 20%; color: var(--text-muted); font-size: 13px;">${p.LastMet}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `</tbody></table></div>`;
+                card.innerHTML = html;
+                return card;
+            }
 
             let hasHw = false;
             for (const [hwKey, players] of Object.entries(hardwareGroups)) {
                 if (players.length > 1) { 
                     hasHw = true;
-                    const headerRow = document.createElement('tr');
-                    headerRow.innerHTML = `<td colspan="4" class="ip-header"><i class="fa-solid fa-microchip" style="margin-right:8px;"></i> CONSOLE MATCH &nbsp; | &nbsp; ${players.length} Linked Profiles</td>`;
-                    hwBody.appendChild(headerRow);
-                    players.forEach(p => appendPlayerRow(hwBody, p));
+                    hwContainer.appendChild(createClusterCard("Exact Console Match", "fa-microchip", players));
                 }
             }
-            if (!hasHw) hwBody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 40px;'>No exact hardware matches detected.</td></tr>";
+            if (!hasHw) hwContainer.innerHTML = "<div class='empty-state'>No exact hardware matches detected.</div>";
 
             let hasHh = false;
             for (const [ip, players] of Object.entries(householdGroups)) {
                 if (players.length > 1) { 
                     hasHh = true;
-                    const headerRow = document.createElement('tr');
-                    headerRow.innerHTML = `<td colspan="4" class="ip-header"><i class="fa-solid fa-house-signal" style="margin-right:8px;"></i> NETWORK MATCH &nbsp; | &nbsp; ${players.length} Linked Profiles</td>`;
-                    hhBody.appendChild(headerRow);
-                    players.forEach(p => appendPlayerRow(hhBody, p));
+                    hhContainer.appendChild(createClusterCard("Network/Household Match", "fa-house-signal", players));
                 }
             }
-            if (!hasHh) hhBody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 40px;'>No correlated household networks detected.</td></tr>";
+            if (!hasHh) hhContainer.innerHTML = "<div class='empty-state'>No correlated household networks detected.</div>";
         }
 
         function changePageSize() {
@@ -801,7 +866,7 @@
             const pageData = currentDisplayList.slice((currentPage - 1) * itemsPerPage, ((currentPage - 1) * itemsPerPage) + itemsPerPage);
 
             if (pageData.length === 0) {
-                tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 60px;'>No records found matching your search.</td></tr>";
+                tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 80px; font-size: 15px; color: var(--text-muted);'>No records found matching your search.</td></tr>";
                 return;
             }
 
@@ -841,11 +906,6 @@
                     }
                     if (searchType === "status") return p.Flag.toLowerCase().includes(lowerQuery);
                     
-                    if (searchType === "ip_hash") return (p.IP || "").toLowerCase().includes(lowerQuery) || (p.LocalIP || "").toLowerCase().includes(lowerQuery);
-                    if (searchType === "ip_raw") {
-                        const hashedIp = processStringHash(query);
-                        return (p.IP || "").includes(hashedIp) || (p.LocalIP || "").includes(hashedIp);
-                    }
                     return false;
                 });
             }
@@ -974,7 +1034,7 @@
                         GUID: cleanGuid, 
                         GamerTag: username, 
                         Reason: reason, 
-                        Discord: "", // Keep passing empty string so the DB doesn't fail a NOT NULL constraint
+                        Discord: "", // Ensure DB doesn't fail NOT NULL constraint
                         Evidence: evidence,
                         Submitter_HWID: submitterHwid,
                         Reported_At: timeString
@@ -1049,15 +1109,7 @@
             checkAuth();
         }
 
-        // --- ADMIN REPORT REVIEWS ---
-
-        function formatEvidence(evidence) {
-            if (!evidence) return "None";
-            if (evidence.startsWith("http")) {
-                return `<a href="${evidence}" target="_blank" style="color: #38bdf8; text-decoration: underline;">Link <i class="fa-solid fa-up-right-from-square" style="font-size:10px;"></i></a>`;
-            }
-            return `<span title="${evidence}">${evidence.length > 20 ? evidence.substring(0,20)+'...' : evidence}</span>`;
-        }
+        // --- OVERHAULED ADMIN REPORT REVIEWS ---
 
         async function loadReports() {
             try {
@@ -1082,7 +1134,7 @@
                     pendingReports = await response.json();
                     renderReports();
                 } else {
-                    document.getElementById('adminReportsBody').innerHTML = "<tr><td colspan='6' style='text-align:center;'>Failed to load reports.</td></tr>";
+                    document.getElementById('adminReportsContainer').innerHTML = "<div class='empty-state' style='grid-column: 1 / -1; color: #ef4444;'><i class='fa-solid fa-triangle-exclamation'></i> Failed to load reports.</div>";
                 }
             } catch (e) {
                 console.error(e);
@@ -1090,28 +1142,59 @@
         }
 
         function renderReports() {
-            const tbody = document.getElementById('adminReportsBody');
-            tbody.innerHTML = "";
+            const container = document.getElementById('adminReportsContainer');
+            container.innerHTML = "";
+            
             if (pendingReports.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; padding: 40px;'>No pending reports found.</td></tr>";
+                container.innerHTML = "<div class='empty-state' style='grid-column: 1 / -1;'>No pending reports found in the database.</div>";
                 return;
             }
+            
             pendingReports.forEach(report => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-size: 12px; color: var(--text-muted);">${report.Reported_At || "Unknown"}</td>
-                    <td><div style="font-weight: 600;">${report.GamerTag}</div><div class="guid-font" style="font-size:10px;" title="${report.GUID}">${report.GUID.substring(0, 16)}...</div></td>
-                    <td style="color: #fdba74; font-size: 13px;">${report.Reason}</td>
-                    <td><div class="guid-font" style="font-size:10px;" title="Submitter HWID">${report.Submitter_HWID ? report.Submitter_HWID.substring(0,12)+'...' : 'N/A'}</div></td>
-                    <td style="font-size: 12px;">${formatEvidence(report.Evidence)}</td>
-                    <td>
-                        <div style="display: flex; gap: 5px;">
-                            <button class="btn-primary" style="padding: 6px 10px; font-size: 11px;" onclick="processReport('${report.GUID}')" title="Review Profile"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-danger" style="padding: 6px 10px; font-size: 11px;" onclick="deleteReportRecord(${report.id})" title="Dismiss Report"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </td>
+                const card = document.createElement('div');
+                card.className = 'report-card';
+                
+                // Format Evidence Link cleanly
+                let evidenceHtml = `<span style="color: rgba(255,255,255,0.3); font-style: italic;">No evidence provided</span>`;
+                if (report.Evidence && report.Evidence.trim() !== "" && report.Evidence !== "None") {
+                    if (report.Evidence.startsWith("http")) {
+                        evidenceHtml = `<a href="${report.Evidence}" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-up-right-from-square"></i> Open Evidence Link</a>`;
+                    } else {
+                        evidenceHtml = `<span style="color: #e2e8f0; line-height: 1.4;">${report.Evidence}</span>`;
+                    }
+                }
+
+                card.innerHTML = `
+                    <div class="report-header">
+                        <div class="report-title"><i class="fa-solid fa-user-ninja" style="color: var(--text-muted);"></i> ${report.GamerTag}</div>
+                        <div class="report-time">${report.Reported_At || "Unknown Time"}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 5px;">
+                        <span class="report-reason-badge"><i class="fa-solid fa-triangle-exclamation"></i> ${report.Reason}</span>
+                    </div>
+                    
+                    <div class="report-detail">
+                        <span class="report-detail-label">Target GUID Hash</span>
+                        <span class="guid-font" style="color: #cbd5e1;">${report.GUID}</span>
+                    </div>
+                    
+                    <div class="report-detail">
+                        <span class="report-detail-label">Submitter HWID</span>
+                        <span class="guid-font" style="font-size: 11px;">${report.Submitter_HWID || 'N/A'}</span>
+                    </div>
+                    
+                    <div class="report-detail" style="margin-bottom: 10px; margin-top: 5px;">
+                        <span class="report-detail-label">Evidence / Notes</span>
+                        ${evidenceHtml}
+                    </div>
+                    
+                    <div class="report-actions">
+                        <button class="btn-primary" style="padding: 10px; font-size: 12px;" onclick="processReport('${report.GUID}')" title="Fetch into Update Tool"><i class="fa-solid fa-magnifying-glass"></i> Review Profile</button>
+                        <button class="btn-danger" style="padding: 10px; font-size: 12px;" onclick="deleteReportRecord(${report.id})" title="Delete this report permanently"><i class="fa-solid fa-trash"></i> Dismiss</button>
+                    </div>
                 `;
-                tbody.appendChild(tr);
+                container.appendChild(card);
             });
         }
 
